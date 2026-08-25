@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AceMath</title>
+  <link rel="icon" type="image/png" href="./logo.png">
+
+  <!-- Desmos API -->
+  <script src="https://www.desmos.com/api/v1.9/calculator.js?apiKey=dcb31709b452b1cf9dc26972add0fda6" defer></script>
+
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- CSS -->
+  <link rel="stylesheet" href="style.css">
+
+  <script>
+    function toggleAuthMode(mode) {
+      const regForm = document.getElementById('form-register');
+      const loginForm = document.getElementById('form-login');
+      const subtitle = document.getElementById('auth-subtitle');
+
+      if (mode === 'login') {
+        if (regForm) regForm.classList.add('hidden');
+        if (loginForm) loginForm.classList.remove('hidden');
+        if (subtitle) subtitle.innerText = 'Sign in to your account';
+      } else {
+        if (loginForm) loginForm.classList.add('hidden');
+        if (regForm) regForm.classList.remove('hidden');
+        if (subtitle) subtitle.innerText = 'Create your new account';
+      }
+    }
+    window.toggleAuthMode = toggleAuthMode;
+  </script>
+</head>
+<body class="bg-slate-900 text-white min-h-screen flex items-center justify-center">
+
+  <!-- TOAST NOTIFICATION -->
+  <div id="toast" class="fixed top-5 right-5 hidden z-50 px-5 py-3 rounded-xl shadow-xl text-base font-semibold transition-all duration-300 max-w-sm border"></div>
+
+  <!-- AUTH SCREEN -->
+  <div id="auth-screen" class="w-full max-w-md bg-slate-800 p-8 rounded-xl shadow-2xl border border-slate-700 m-4">
+
+    <!-- LOGO & HEADER -->
+    <div class="flex flex-col items-center mb-6">
+      <img src="./logo.png" alt="AceMath Logo" class="w-20 h-20 mb-3 rounded-full bg-white p-1 border-2 border-indigo-500 shadow-md logo-img">
+      <h1 class="text-4xl font-extrabold text-center text-indigo-500 tracking-tight">AceMath</h1>
+      <p id="auth-subtitle" class="text-lg text-slate-300 text-center mt-1 font-medium">Create your new account</p>
+    </div>
+
+    <!-- REGISTER FORM -->
+    <form id="form-register" onsubmit="window.handleRegister ? window.handleRegister(event) : event.preventDefault()" class="space-y-4" novalidate>
+      <div class="grid grid-cols-2 gap-3">
+        <div>
+          <label class="block text-sm font-bold uppercase text-slate-300 mb-1">First Name</label>
+          <input type="text" id="reg-firstname" required class="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 text-base focus:outline-none focus:border-indigo-500 text-white font-medium">
+        </div>
+        <div>
+          <label class="block text-sm font-bold uppercase text-slate-300 mb-1">Last Name</label>
+          <input type="text" id="reg-lastname" required class="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 text-base focus:outline-none focus:border-indigo-500 text-white font-medium">
+        </div>
+      </div>
+
+      <div>
+        <label class="block text-sm font-bold uppercase text-slate-300 mb-1">Email</label>
+        <input type="email" id="reg-email" required class="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 text-base focus:outline-none focus:border-indigo-500 text-white font-medium">
+      </div>
+
+      <div>
+        <label class="block text-sm font-bold uppercase text-slate-300 mb-1">Password</label>
+        <input type="password" id="reg-password" required class="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 text-base focus:outline-none focus:border-indigo-500 text-white font-medium" placeholder="Min 8 chars, 1 uppercase, 1 number">
+      </div>
+
+      <div class="grid grid-cols-2 gap-3">
+        <div>
+          <label class="block text-sm font-bold uppercase text-slate-300 mb-1">Target Score</label>
+          <input type="number" id="reg-target" min="400" max="1600" step="10" placeholder="400 - 1600" required class="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 text-base focus:outline-none focus:border-indigo-500 text-white font-medium">
+        </div>
+        <div>
+          <label class="block text-sm font-bold uppercase text-slate-300 mb-1">Exam Date</label>
+          <select id="reg-date" required class="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 text-base focus:outline-none focus:border-indigo-500 text-white font-medium">
+            <option value="" disabled selected>Select Date</option>
+            <option value="2026-10-03">October 3, 2026</option>
+            <option value="2026-11-07">November 7, 2026</option>
+            <option value="2026-12-05">December 5, 2026</option>
+          </select>
+        </div>
+      </div>
+
+      <button type="submit" id="reg-btn" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-3 rounded-lg transition duration-200 mt-2 text-lg shadow-md">Create Account</button>
+
+      <p class="text-base text-center text-slate-300 mt-4">
+        Already have an account?
+        <button type="button" onclick="window.toggleAuthMode('login')" class="text-indigo-400 hover:underline font-bold ml-1 cursor-pointer">Sign In</button>
+      </p>
+    </form>
+
+    <!-- LOGIN FORM -->
+    <form id="form-login" onsubmit="window.handleLogin ? window.handleLogin(event) : event.preventDefault()" class="space-y-4 hidden" novalidate>
+      <div>
+        <label class="block text-sm font-bold uppercase text-slate-300 mb-1">Email</label>
+        <input type="email" id="login-email" required class="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 text-base focus:outline-none focus:border-indigo-500 text-white font-medium">
+      </div>
+
+      <div>
+        <label class="block text-sm font-bold uppercase text-slate-300 mb-1">Password</label>
+        <input type="password" id="login-password" required class="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 text-base focus:outline-none focus:border-indigo-500 text-white font-medium">
+      </div>
+
+      <button type="submit" id="login-btn" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-3 rounded-lg transition duration-200 mt-2 text-lg shadow-md">Sign In</button>
+
+      <p class="text-base text-center text-slate-300 mt-4">
+        Need an account?
+        <button type="button" onclick="window.toggleAuthMode('register')" class="text-indigo-400 hover:underline font-bold ml-1 cursor-pointer">Create Account</button>
+      </p>
+    </form>
+  </div>
+
+  <!-- MAIN APP SCREEN -->
+  <div id="app-screen" class="hidden w-screen min-h-screen bg-slate-900 flex flex-col md:flex-row">
+
+    <!-- LEFT SIDEBAR -->
+    <div class="w-full md:w-72 bg-slate-800 border-b md:border-b-0 md:border-r border-slate-700 p-7 flex flex-col justify-between shrink-0">
+      <div>
+        <div class="flex items-center gap-3 mb-10">
+          <img src="./logo.png" alt="AceMath Logo" class="w-12 h-12 rounded-full bg-white p-0.5 border border-indigo-500 logo-img">
+          <h1 class="text-3xl font-extrabold text-indigo-500 tracking-tight">AceMath</h1>
+        </div>
+
+        <nav class="space-y-3">
+          <button onclick="switchTab('home')" id="tab-home" class="w-full text-left px-5 py-4 rounded-xl font-bold text-lg am-text-accent am-bg-app border am-border transition">
+            Home
+          </button>
+          <button onclick="switchTab('progress')" id="tab-progress" class="w-full text-left px-5 py-4 rounded-xl font-bold text-lg am-text-muted am-hover-text-heading am-hover-bg-tint transition">
+            Progress
+          </button>
+          <button onclick="switchTab('practice')" id="tab-practice" class="w-full text-left px-5 py-4 rounded-xl font-bold text-lg am-text-muted am-hover-text-heading am-hover-bg-tint transition">
+            Practice
+          </button>
+          <button onclick="switchTab('settings')" id="tab-settings" class="w-full text-left px-5 py-4 rounded-xl font-bold text-lg am-text-muted am-hover-text-heading am-hover-bg-tint transition">
+            Settings
+          </button>
+          <button onclick="switchTab('admin')" id="tab-admin" style="display:none" class="w-full text-left px-5 py-4 rounded-xl font-bold text-lg am-text-muted am-hover-text-heading am-hover-bg-tint transition">
+            Admin
+          </button>
+        </nav>
+      </div>
+    </div>
+
+    <!-- MAIN WORKSPACE -->
+    <div class="flex-1 p-6 md:p-10 overflow-y-auto bg-slate-900">
+
+      <!-- TOP USER HEADER -->
+      <div class="bg-slate-800 rounded-xl border border-slate-700 px-6 py-5 mb-6 flex items-center justify-between gap-6 flex-wrap shadow-lg">
+        <div>
+          <h2 id="user-welcome" class="text-3xl font-extrabold text-white tracking-tight">Welcome</h2>
+          <p class="text-base text-slate-300 mt-1 font-medium">SAT Math Preparation Workspace</p>
+        </div>
+
+        <div class="flex items-center gap-3">
+          <div class="bg-slate-900/90 border border-slate-700 rounded-xl px-4 py-2 text-base text-slate-200 font-medium">
+            Target: <span id="user-target" class="font-bold text-white ml-1">---</span>
+          </div>
+          <div class="bg-slate-900/90 border border-slate-700 rounded-xl px-4 py-2 text-base text-slate-200 font-medium">
+            Exam: <span id="user-exam-date" class="font-bold text-white ml-1">---</span>
+          </div>
+
+          <!-- КНОПКА ПЕРЕКЛЮЧЕНИЯ ТЕМЫ -->
+          <button id="themeToggle" class="theme-toggle-btn" title="Сменить тему">
+            <svg class="sun-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+            </svg>
+            <svg class="moon-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- TAB CONTENTS -->
+      <div>
+
+        <!-- SECTION: HOME -->
+        <div id="sec-home" class="space-y-6">
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+
+            <!-- КАРТОЧКА 1: EXAM DATE & TIMED COUNTDOWN -->
+            <div class="bg-slate-800 p-6 rounded-xl border border-slate-700 text-center flex flex-col items-center justify-center shadow-md">
+              <div class="flex items-center gap-2 mb-1">
+                <span class="text-sm font-bold uppercase text-slate-300 tracking-wider">Exam Date</span>
+                <button onclick="editExamDate()" class="text-slate-400 hover:text-white transition-colors cursor-pointer" title="Edit Exam Date">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                  </svg>
+                </button>
+              </div>
+              <div id="home-exam-date" class="text-base text-slate-300 mb-2 font-semibold">--</div>
+              <div id="days-countdown" class="text-3xl font-extrabold text-white">--d --h --m</div>
+            </div>
+
+            <!-- КАРТОЧКА 2: TARGET SCORE -->
+            <div class="bg-slate-800 p-6 rounded-xl border border-slate-700 text-center flex flex-col items-center justify-center shadow-md">
+              <div class="flex items-center gap-2 mb-1">
+                <span class="text-sm font-bold uppercase text-slate-300 tracking-wider">Target Score</span>
+                <button onclick="editTargetScore()" class="text-slate-400 hover:text-white transition-colors cursor-pointer" title="Edit Target Score">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                  </svg>
+                </button>
+              </div>
+              <div id="home-target-score" class="text-4xl font-black text-indigo-400 mt-1">--</div>
+            </div>
+
+            <!-- КАРТОЧКА 3: QUESTIONS SOLVED -->
+            <div class="bg-slate-800 p-6 rounded-xl border border-slate-700 text-center flex flex-col items-center justify-center shadow-md">
+              <span class="text-sm font-bold uppercase text-slate-300 tracking-wider mb-2">Questions Solved</span>
+              <div id="home-solved-count" class="text-4xl font-black text-white">0</div>
+            </div>
+
+          </div>
+
+          <!-- QUICK START -->
+          <div class="bg-slate-800 p-8 rounded-xl border border-slate-700 shadow-md">
+            <h3 class="text-2xl font-extrabold text-white mb-2">Quick Start</h3>
+            <p class="text-base text-slate-300 mb-6 font-medium">Launch a practice session by topic or full module.</p>
+            <button onclick="switchTab('practice')" class="bg-indigo-600 hover:bg-indigo-500 text-white font-bold px-8 py-3 rounded-xl transition text-base shadow-md">Start Practice Session</button>
+          </div>
+
+          <!-- JOIN COMMUNITY -->
+          <div class="bg-slate-800 p-8 rounded-xl border border-slate-700 shadow-md">
+            <h3 class="text-2xl font-extrabold text-white mb-2">Community</h3>
+            <p class="text-base text-slate-300 mb-6 font-medium">Official updates and SAT practice strategies.</p>
+            <a href="https://t.me/acemath_official" target="_blank" class="inline-flex items-center gap-2 bg-slate-700 hover:bg-slate-600 text-white font-bold px-8 py-3 rounded-xl transition text-base shadow-md">
+              Telegram Channel
+            </a>
+          </div>
+        </div>
+
+        <!-- SECTION: PROGRESS -->
+        <div id="sec-progress" class="hidden space-y-4">
+          <h3 class="text-2xl font-extrabold text-white mb-4">Your Performance</h3>
+          <div class="bg-slate-800 p-6 rounded-xl border border-slate-700 shadow-md">
+            <p class="text-base text-slate-300 font-medium">Detailed stats and accuracy breakdown will appear here after your first practice sessions.</p>
+          </div>
+        </div>
+
+        <!-- SECTION: PRACTICE -->
+        <div id="sec-practice" class="hidden min-h-[600px]"></div>
+
+        <!-- SECTION: SETTINGS -->
+        <div id="sec-settings" class="hidden space-y-4"></div>
+
+        <!-- SECTION: ADMIN -->
+        <div id="sec-admin" class="hidden space-y-6">
+          <div class="bg-slate-800 p-8 rounded-xl border border-slate-700 max-w-4xl shadow-md">
+            <h3 class="text-2xl font-extrabold text-white mb-2">Question Management</h3>
+            <p class="text-base text-slate-300 mb-6 font-medium">Create and publish Multiple Choice or Student-Produced Response questions.</p>
+
+            <form id="admin-question-form" onsubmit="window.handleSaveQuestion ? window.handleSaveQuestion(event) : event.preventDefault()" class="space-y-5">
+
+              <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div>
+                  <label class="block text-sm font-bold uppercase text-slate-300 mb-2">Category</label>
+                  <select id="admin-q-category" required class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-base focus:outline-none focus:border-indigo-500 font-semibold text-white">
+                    <option value="Algebra">Algebra</option>
+                    <option value="Advanced Math">Advanced Math</option>
+                    <option value="Problem-Solving and Data Analysis">Problem-Solving & Data</option>
+                    <option value="Geometry and Trigonometry">Geometry & Trig</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label class="block text-sm font-bold uppercase text-slate-300 mb-2">Difficulty</label>
+                  <select id="admin-q-difficulty" required class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-base focus:outline-none focus:border-indigo-500 font-semibold text-white">
+                    <option value="Easy">Easy</option>
+                    <option value="Medium">Medium</option>
+                    <option value="Hard">Hard</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label class="block text-sm font-bold uppercase text-slate-300 mb-2">Question Type</label>
+                  <select id="admin-q-type" onchange="toggleAdminQuestionType(this.value)" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-base focus:outline-none focus:border-indigo-500 font-semibold text-white">
+                    <option value="mcq">Multiple Choice</option>
+                    <option value="spr">Student-Produced Response (Input)</option>
+                  </select>
+                </div>
+              </div>
+
+              <div>
+                <label class="block text-sm font-bold uppercase text-slate-300 mb-2">Question Text</label>
+                <textarea id="admin-q-text" rows="3" required placeholder="Enter the math problem statement..." class="w-full bg-slate-900 border border-slate-700 rounded-xl p-4 text-base focus:outline-none focus:border-indigo-500 font-medium text-white"></textarea>
+              </div>
+
+              <div>
+                <label class="block text-sm font-bold uppercase text-slate-300 mb-2">Question Image URL (Optional)</label>
+                <input type="url" id="admin-q-image" placeholder="https://..." class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-base focus:outline-none focus:border-indigo-500 text-white font-medium">
+              </div>
+
+              <div id="admin-mcq-container" class="space-y-3">
+                <label class="block text-sm font-bold uppercase text-slate-300">Options & Select Correct Answer</label>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div class="flex items-center gap-3 bg-slate-900 border border-slate-700 p-3 rounded-xl">
+                    <input type="radio" name="admin-correct-opt" value="0" checked class="w-5 h-5 text-indigo-600 focus:ring-0 cursor-pointer">
+                    <input type="text" id="admin-opt-0" placeholder="Option A" class="w-full bg-transparent text-white text-base font-medium focus:outline-none">
+                  </div>
+                  <div class="flex items-center gap-3 bg-slate-900 border border-slate-700 p-3 rounded-xl">
+                    <input type="radio" name="admin-correct-opt" value="1" class="w-5 h-5 text-indigo-600 focus:ring-0 cursor-pointer">
+                    <input type="text" id="admin-opt-1" placeholder="Option B" class="w-full bg-transparent text-white text-base font-medium focus:outline-none">
+                  </div>
+                  <div class="flex items-center gap-3 bg-slate-900 border border-slate-700 p-3 rounded-xl">
+                    <input type="radio" name="admin-correct-opt" value="2" class="w-5 h-5 text-indigo-600 focus:ring-0 cursor-pointer">
+                    <input type="text" id="admin-opt-2" placeholder="Option C" class="w-full bg-transparent text-white text-base font-medium focus:outline-none">
+                  </div>
+                  <div class="flex items-center gap-3 bg-slate-900 border border-slate-700 p-3 rounded-xl">
+                    <input type="radio" name="admin-correct-opt" value="3" class="w-5 h-5 text-indigo-600 focus:ring-0 cursor-pointer">
+                    <input type="text" id="admin-opt-3" placeholder="Option D" class="w-full bg-transparent text-white text-base font-medium focus:outline-none">
+                  </div>
+                </div>
+              </div>
+
+              <div id="admin-spr-container" class="hidden space-y-2">
+                <label class="block text-sm font-bold uppercase text-slate-300">Correct Answer Value</label>
+                <input type="text" id="admin-spr-answer" placeholder="e.g. 12, -3.5 or 3/4" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-base focus:outline-none focus:border-indigo-500 font-mono text-white">
+                <p class="text-sm text-slate-400 font-medium">For free-response questions, the options array remains empty and exact text comparison is used.</p>
+              </div>
+
+              <div>
+                <label class="block text-sm font-bold uppercase text-slate-300 mb-2">Explanation / Solution Steps</label>
+                <textarea id="admin-q-explanation" rows="3" placeholder="Step-by-step solution breakdown..." class="w-full bg-slate-900 border border-slate-700 rounded-xl p-4 text-base focus:outline-none focus:border-indigo-500 font-medium text-white"></textarea>
+              </div>
+
+              <div class="flex justify-end gap-3 pt-2">
+                <button type="button" onclick="resetAdminForm()" class="px-6 py-3 rounded-xl font-bold text-slate-300 hover:text-white hover:bg-slate-700/50 transition text-base">Reset</button>
+                <button type="submit" class="bg-indigo-600 hover:bg-indigo-500 text-white font-bold px-8 py-3 rounded-xl transition text-base shadow-md">Save Question</button>
+              </div>
+
+            </form>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+  </div>
+
+  <!-- MODAL EDIT PROFILE -->
+  <div id="edit-modal" class="fixed inset-0 bg-black/75 backdrop-blur-sm hidden items-center justify-center z-50 p-4">
+    <div class="bg-slate-800 border border-slate-700 w-full max-w-md p-6 rounded-xl shadow-2xl relative">
+      <h3 id="modal-title" class="text-xl font-bold text-white mb-4">Edit Setting</h3>
+
+      <div id="modal-target-group" class="mb-5">
+        <label class="block text-sm font-bold uppercase text-slate-300 mb-2">Target Score (400 - 1600)</label>
+        <input type="number" id="modal-target-input" min="400" max="1600" step="10" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 text-white focus:outline-none focus:border-indigo-500 font-bold text-base">
+      </div>
+
+      <div id="modal-date-group" class="mb-5 hidden">
+        <label class="block text-sm font-bold uppercase text-slate-300 mb-2">Select SAT Exam Date</label>
+        <select id="modal-date-select" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 text-white focus:outline-none focus:border-indigo-500 font-bold text-base">
+          <option value="2026-10-03">October 3, 2026</option>
+          <option value="2026-11-07">November 7, 2026</option>
+          <option value="2026-12-05">December 5, 2026</option>
+        </select>
+      </div>
+
+      <div class="flex items-center justify-end gap-3">
+        <button onclick="closeEditModal()" class="px-5 py-2.5 rounded-lg font-bold text-slate-300 hover:text-white hover:bg-slate-700/50 transition text-base">Cancel</button>
+        <button onclick="saveEditModal()" class="px-5 py-2.5 rounded-lg font-bold bg-indigo-600 hover:bg-indigo-500 text-white transition text-base shadow-md">Save Changes</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- HELPER SCRIPT FOR ADMIN TYPE TOGGLE & THEME -->
+  <script>
+    function toggleAdminQuestionType(type) {
+      const mcqBox = document.getElementById('admin-mcq-container');
+      const sprBox = document.getElementById('admin-spr-container');
+
+      if (type === 'spr') {
+        if (mcqBox) mcqBox.classList.add('hidden');
+        if (sprBox) sprBox.classList.remove('hidden');
+      } else {
+        if (mcqBox) mcqBox.classList.remove('hidden');
+        if (sprBox) sprBox.classList.add('hidden');
+      }
+    }
+    window.toggleAdminQuestionType = toggleAdminQuestionType;
+
+    function resetAdminForm() {
+      const form = document.getElementById('admin-question-form');
+      if (form) {
+        form.reset();
+        toggleAdminQuestionType('mcq');
+      }
+    }
+    window.resetAdminForm = resetAdminForm;
+
+    document.addEventListener('DOMContentLoaded', () => {
+      const toggleBtn = document.getElementById('themeToggle');
+      const bodyEl = document.body;
+
+      if (localStorage.getItem('am_theme') === 'light') {
+        bodyEl.classList.add('light-theme');
+      }
+
+      if (toggleBtn) {
+        toggleBtn.addEventListener('click', () => {
+          bodyEl.classList.toggle('light-theme');
+          if (bodyEl.classList.contains('light-theme')) {
+            localStorage.setItem('am_theme', 'light');
+          } else {
+            localStorage.setItem('am_theme', 'dark');
+          }
+        });
+      }
+    });
+  </script>
+
+  <!-- Firebase CDN v8 -->
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+
+  <!-- JS Скрипты приложения -->
+  <script src="firebase.js"></script>
+  <script src="validation.js"></script>
+  <script src="questions.js"></script>
+  <script src="auth.js"></script>
+  <script src="app.js"></script>
+  <script src="practice.js"></script>
+  <script src="progress.js"></script>
+  <script src="settings.js"></script>
+  <script src="admin.js"></script>
+</body>
+</html>

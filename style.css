@@ -1,0 +1,335 @@
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap');
+
+/* ==========================================================================
+   1. ДИЗАЙН-ТОКЕНЫ И ПЕРЕМЕННЫЕ
+   ========================================================================== */
+:root {
+  color-scheme: dark;
+
+  --bg-app: #030508;
+  --bg-surface: #0b101b;
+  --bg-surface-deep: #010204;
+  --bg-elevated-hover: #131d31;
+  --bg-elevated-hover-2: #1e293b;
+  --bg-overlay: rgba(0, 0, 0, 0.75);
+  --sidebar-bg: #030508;
+  --bg-pill: rgba(255, 255, 255, 0.05);
+
+  --border-default: #1e2c4d;
+  --border-subtle: #0b101b;
+  --border-strong: #2563eb;
+
+  --text-heading: #f8fafc;
+  --text-body: #cbd5e1;
+  --text-muted: #8ea0bd;
+  --text-faint: #f8fafc;
+  --text-disabled: #475569;
+
+  --accent: #34d399;
+  --accent-hover: #6ee7b7;
+  --accent-soft: #a7f3d0;
+  --accent-strong: #10b981;
+  --accent-bg-deep: #052e16;
+  --accent-text: #dcfce7;
+
+  --accent-2: #38bdf8;
+  --accent-2-soft: #7dd3fc;
+  --gradient-brand: linear-gradient(135deg, var(--accent) 0%, var(--accent-2) 100%);
+  --shadow-glow: 0 0 22px rgba(52, 211, 153, 0.18);
+  --shadow-soft: 0 6px 20px rgba(0, 0, 0, 0.25);
+
+  --success: #34d399;
+  --warning: #fbbf24;
+  --danger: #fb7185;
+
+  --radius-sm: 10px;
+  --radius-md: 14px;
+  --radius-lg: 18px;
+}
+
+/* ==========================================================================
+   2. СВЕТЛАЯ ТЕМА (LIGHT MODE)
+   ========================================================================== */
+body.light-theme {
+  color-scheme: light;
+
+  --bg-app: #f6f7fb;
+  --bg-surface: #ffffff;
+  --bg-surface-deep: #eef1f6;
+  --bg-elevated-hover: #f4f6fa;
+  --bg-elevated-hover-2: #e8ecf3;
+  --sidebar-bg: #ffffff;
+  --bg-pill: #eef1f7;
+
+  --border-default: #e2e6ee;
+  --border-subtle: #edf0f5;
+  --border-strong: #b7c0d1;
+
+  --text-heading: #1f2733;
+  --text-body: #45526a;
+  --text-muted: #7c869c;
+  --text-faint: #0f172a;
+  --text-disabled: #b2bacb;
+
+  --shadow-glow: 0 4px 16px rgba(15, 23, 42, 0.06);
+  --shadow-soft: 0 4px 16px rgba(15, 23, 42, 0.06);
+}
+
+/* ==========================================================================
+   3. МЯГКИЕ ШРИФТЫ И СГЛАЖИВАНИЕ
+   ========================================================================== */
+body, p, span, label, div, td, th, button, input, select, textarea {
+  font-family: 'Plus Jakarta Sans', sans-serif !important;
+  letter-spacing: -0.005em;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.font-mono, .am-card .font-mono, [class*="font-mono"] {
+  font-family: 'JetBrains Mono', monospace !important;
+  letter-spacing: normal;
+  -webkit-font-smoothing: antialiased;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  background-color: var(--bg-app);
+  color: var(--text-body);
+  font-size: 1.08rem !important;
+  transition: background-color 0.35s ease, color 0.35s ease;
+}
+
+.hidden {
+  display: none !important;
+}
+
+.logo-img {
+  max-width: 80px;
+  max-height: 80px;
+  object-fit: contain;
+}
+
+body.light-theme aside,
+body.light-theme .sidebar,
+body.light-theme nav.sidebar {
+  background-color: var(--sidebar-bg) !important;
+  border-right: 1px solid var(--border-default);
+}
+
+/* ==========================================================================
+   4. МЯГКАЯ ТИПОГРАФИКА
+   ========================================================================== */
+p, span, label, td, th {
+  font-size: 1.05rem !important;
+}
+
+aside nav button, .sidebar nav button, aside nav a, .sidebar nav a {
+  font-size: 1.05rem !important;
+  font-weight: 600 !important;
+}
+
+h1, .text-3xl, .text-4xl { font-size: 2.1rem !important; font-weight: 700 !important; letter-spacing: -0.02em !important; }
+h2, .text-2xl            { font-size: 1.55rem !important; font-weight: 700 !important; letter-spacing: -0.015em !important; }
+h3, .text-xl             { font-size: 1.22rem !important; font-weight: 600 !important; }
+
+.am-card .font-mono,
+.am-card [class*="font-mono"] {
+  font-size: 1.9rem !important;
+  font-weight: 700 !important;
+}
+
+button, .filter-btn, .am-badge {
+  font-size: 1rem !important;
+  font-weight: 600 !important;
+}
+
+button {
+  border-radius: var(--radius-md) !important;
+  transition: all 0.2s ease !important;
+}
+
+.rounded-xl, .rounded-2xl {
+  border-radius: var(--radius-lg) !important;
+}
+.rounded-lg {
+  border-radius: var(--radius-md) !important;
+}
+
+/* ЖЁСТКИЙ ФИКС ВЕРХНЕЙ ПАНЕЛИ И ПОЛЬЗОВАТЕЛЯ */
+#app-screen header *,
+.bg-slate-800.rounded-xl.border.border-slate-700.px-6.py-5 span,
+.bg-slate-800.rounded-xl.border.border-slate-700.px-6.py-5 div,
+.bg-slate-800.rounded-xl.border.border-slate-700.px-6.py-5 h2 {
+  color: var(--text-heading) !important;
+}
+
+#user-welcome {
+  color: var(--text-heading) !important;
+}
+
+/* ФИКС ПИЛЮЛЬ В ПРАВОМ ВЕРХНЕМ УГЛУ */
+.bg-slate-900\/90 {
+  background-color: var(--bg-pill) !important;
+  border-color: var(--border-default) !important;
+  color: var(--text-body) !important;
+}
+.bg-slate-900\/90 *,
+.bg-slate-900\/90 span {
+  color: var(--text-body) !important;
+}
+.bg-slate-900\/90 .font-bold,
+.bg-slate-900\/90 span.font-bold,
+.bg-slate-900\/90 span[id^="user-"] {
+  color: var(--text-heading) !important;
+}
+
+/* ==========================================================================
+   5. МАППИНГ TAILWIND КЛАССОВ
+   ========================================================================== */
+.bg-slate-900          { background-color: var(--bg-app) !important; }
+.bg-slate-800          { background-color: var(--bg-surface) !important; }
+.bg-slate-950          { background-color: var(--bg-surface-deep) !important; }
+.bg-slate-700          { background-color: var(--bg-elevated-hover) !important; }
+.bg-slate-800\/80      { background-color: color-mix(in srgb, var(--bg-surface) 80%, transparent) !important; }
+.hover\:bg-slate-600:hover    { background-color: var(--bg-elevated-hover-2) !important; }
+.hover\:bg-slate-700:hover    { background-color: var(--bg-elevated-hover) !important; }
+.hover\:bg-slate-800:hover    { background-color: var(--bg-surface) !important; }
+
+.border-slate-700      { border-color: var(--border-default) !important; }
+.border-slate-800      { border-color: var(--border-subtle) !important; }
+.border-slate-600      { border-color: var(--border-strong) !important; }
+
+.text-white            { color: var(--text-heading) !important; }
+.text-slate-200        { color: var(--text-heading) !important; }
+.text-slate-300        { color: var(--text-body) !important; }
+.text-slate-400        { color: var(--text-body) !important; }
+.text-slate-600        { color: var(--text-muted) !important; }
+.hover\:text-white:hover { color: var(--text-heading) !important; }
+
+.text-indigo-400, .text-indigo-500, .text-indigo-600 { color: var(--accent) !important; }
+.hover\:text-indigo-300:hover { color: var(--accent-hover) !important; }
+.bg-indigo-600         { background-color: var(--accent) !important; color: #06281c !important; }
+.hover\:bg-indigo-500:hover   { background-color: var(--accent-hover) !important; }
+.border-indigo-500     { border-color: var(--accent) !important; }
+
+/* ==========================================================================
+   6. КАСТОМНЫЕ КОМПОНЕНТЫ (AM-*)
+   ========================================================================== */
+.am-card {
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-lg);
+  transition: all 0.25s ease;
+}
+.am-card:hover {
+  border-color: var(--accent) !important;
+  box-shadow: var(--shadow-glow);
+  transform: translateY(-1px);
+}
+
+.am-gradient-text {
+  background: var(--gradient-brand);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.am-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: .35rem;
+  font-weight: 600;
+  border-radius: var(--radius-sm);
+  padding: 0.4rem 0.8rem;
+  font-size: 0.85rem !important;
+  letter-spacing: 0.02em;
+  text-transform: none;
+}
+.am-badge-accent { background-color: rgba(52, 211, 153, 0.12); color: var(--accent); border: 1px solid rgba(52, 211, 153, 0.25); }
+
+.bg-slate-800.rounded-xl,
+.bg-slate-800.rounded-2xl,
+.bg-slate-800\/80.rounded-2xl {
+  box-shadow: var(--shadow-soft);
+}
+
+/* ==========================================================================
+   7. ПЕРЕКЛЮЧАТЕЛЬ ТЕМЫ
+   ========================================================================== */
+.theme-toggle-btn {
+  position: relative;
+  width: 42px;
+  height: 42px;
+  border-radius: var(--radius-sm);
+  background-color: var(--bg-pill);
+  border: 1px solid var(--border-default);
+  color: var(--text-body);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  outline: none;
+}
+.theme-toggle-btn:hover {
+  border-color: var(--accent);
+  box-shadow: var(--shadow-glow);
+}
+.theme-toggle-btn svg {
+  width: 19px;
+  height: 19px;
+  position: absolute;
+  transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease;
+}
+
+body:not(.light-theme) .sun-icon { transform: rotate(90deg) scale(0); opacity: 0; }
+body:not(.light-theme) .moon-icon { transform: rotate(0deg) scale(1); opacity: 1; color: var(--accent); }
+
+body.light-theme .sun-icon { transform: rotate(0deg) scale(1); opacity: 1; color: #f2a93b; }
+body.light-theme .moon-icon { transform: rotate(-90deg) scale(0); opacity: 0; }
+
+/* ==========================================================================
+   8. МЯГКИЕ ТАБЛИЦЫ
+   ========================================================================== */
+table {
+  border-collapse: separate !important;
+  border-spacing: 0 !important;
+}
+
+table thead th {
+  font-size: 0.72rem !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.06em;
+  color: var(--text-muted) !important;
+  background-color: color-mix(in srgb, var(--bg-app) 60%, transparent);
+  border-bottom: 1px solid var(--border-default) !important;
+}
+
+table tbody tr {
+  transition: background-color 0.15s ease;
+}
+
+table tbody tr:not(:last-child) td {
+  border-bottom: 1px solid var(--border-subtle) !important;
+}
+
+table tbody tr:hover td {
+  background-color: var(--bg-elevated-hover) !important;
+}
+
+table td, table th {
+  font-size: 0.92rem !important;
+}
+
+.overflow-x-auto table {
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+
+table td span[class*="rounded"] {
+  border-radius: 999px !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.01em;
+}
