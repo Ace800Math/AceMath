@@ -179,6 +179,39 @@ window.handleResendVerification = async function() {
   }
 };
 
+// Сброс пароля через встроенный Firebase-флоу: письмо со ссылкой на email
+async function handleForgotPassword() {
+  const emailInput = document.getElementById('login-email');
+  const email = emailInput ? emailInput.value.trim() : '';
+
+  if (!email) {
+    showToast('Enter your email above first, then tap "Forgot password?" again.', true);
+    if (emailInput) emailInput.focus();
+    return;
+  }
+
+  const isLoaded = await ensureFirebaseLoaded();
+  if (!isLoaded) {
+    showToast('Firebase module failed to load. Please refresh.', true);
+    return;
+  }
+
+  try {
+    await firebase.auth().sendPasswordResetEmail(email);
+    showToast(`Password reset link sent to ${email}. Check your inbox (and spam folder).`);
+  } catch (err) {
+    let errorMsg = 'Failed to send reset email.';
+    if (err.code === 'auth/user-not-found') {
+      errorMsg = 'No account found with that email.';
+    } else if (err.code === 'auth/invalid-email') {
+      errorMsg = 'Invalid email format.';
+    } else if (err.code === 'auth/too-many-requests') {
+      errorMsg = 'Too many attempts. Please try again later.';
+    }
+    showToast(errorMsg, true);
+  }
+}
+
 async function handleLogin(e) {
   if (e) e.preventDefault();
 
@@ -302,5 +335,6 @@ document.addEventListener('DOMContentLoaded', () => {
 window.toggleAuthMode = toggleAuthMode;
 window.handleRegister = handleRegister;
 window.handleLogin = handleLogin;
+window.handleForgotPassword = handleForgotPassword;
 window.handleLogout = handleLogout;
 window.showToast = showToast;

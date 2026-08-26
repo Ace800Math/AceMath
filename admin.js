@@ -47,6 +47,18 @@ async function renderAdminDashboard() {
 
       <div class="flex items-center justify-between">
         <div>
+          <h3 class="text-xl font-extrabold text-white">Manage Questions</h3>
+          <p class="text-xs text-slate-400 mt-1">All questions currently in the bank, in solving order. Delete removes a question everywhere immediately.</p>
+        </div>
+        <button type="button" onclick="loadAndRenderQuestionsList(true)" class="bg-slate-700 hover:bg-slate-600 text-slate-200 text-xs font-semibold px-4 py-2 rounded-xl transition">Refresh List</button>
+      </div>
+
+      <div id="admin-questions-list" class="bg-slate-800 rounded-xl border border-slate-700 divide-y divide-slate-700 max-h-96 overflow-y-auto">
+        <div class="p-5 text-sm text-slate-400">Loading questions…</div>
+      </div>
+
+      <div class="flex items-center justify-between pt-4">
+        <div>
           <h3 class="text-xl font-extrabold text-white">Add Question</h3>
           <p class="text-xs text-slate-400 mt-1">New questions appear in Practice immediately after saving — students always solve them in the order they were created.</p>
         </div>
@@ -134,6 +146,7 @@ async function renderAdminDashboard() {
 
   refreshAdminCounts();
   refreshAdminStats();
+  loadAndRenderQuestionsList();
 }
 
 async function refreshAdminStats() {
@@ -149,8 +162,6 @@ async function refreshAdminStats() {
 
   try {
     const currentUser = firebase.auth().currentUser;
-    console.log("Current logged user email:", currentUser ? currentUser.email : "No user logged in");
-
     if (!currentUser || currentUser.email.trim().toLowerCase() !== "doniyor09arabov@gmail.com") {
       totalEl.innerText = 'Access';
       monthEl.innerText = 'Denied';
@@ -161,22 +172,41 @@ async function refreshAdminStats() {
     const usersSnapshot = await firebase.firestore().collection("users").get();
     const users = usersSnapshot.docs.map(doc => doc.data());
 
+    // 1. Total Users
     const totalUsers = users.length;
 
     const now = new Date();
     const currentYear = now.getFullYear();
     const currentMonth = now.getMonth();
+    const todayStr = now.toDateString();
 
+    // 2. New (This Month) - проверяет createdAt и created_at
     const newThisMonth = users.filter(user => {
-      if (!user.createdAt) return false;
-      const createdDate = user.createdAt.toDate ? user.createdAt.toDate() : new Date(user.createdAt);
+      const rawCreated = user.createdAt || user.created_at;
+      if (!rawCreated) return false;
+
+      let createdDate = null;
+      if (typeof rawCreated.toDate === 'function') {
+        createdDate = rawCreated.toDate();
+      } else {
+        createdDate = new Date(rawCreated);
+      }
+
       return createdDate.getFullYear() === currentYear && createdDate.getMonth() === currentMonth;
     }).length;
 
-    const todayStr = now.toDateString();
+    // 3. Active Today - проверяет lastLogin и last_login
     const activeToday = users.filter(user => {
-      const loginDate = user.lastLogin ? (user.lastLogin.toDate ? user.lastLogin.toDate() : new Date(user.lastLogin)) : null;
-      if (!loginDate) return false;
+      const rawLogin = user.lastLogin || user.last_login;
+      if (!rawLogin) return false;
+
+      let loginDate = null;
+      if (typeof rawLogin.toDate === 'function') {
+        loginDate = rawLogin.toDate();
+      } else {
+        loginDate = new Date(rawLogin);
+      }
+
       return loginDate.toDateString() === todayStr;
     }).length;
 
@@ -195,6 +225,95 @@ async function refreshAdminStats() {
 // Старая функция сохранена для совместимости
 async function refreshAdminUsersCount() {
   await refreshAdminStats();
+}
+
+// ==========================================================================
+// СПИСОК ВОПРОСОВ + УДАЛЕНИЕ
+// ==========================================================================
+
+async function loadAndRenderQuestionsList(forceRefresh = false) {
+  const listEl = document.getElementById('admin-questions-list');
+  if (!listEl) return;
+
+  listEl.innerHTML = `<div class="p-5 text-sm text-slate-400">Loading questions…</div>`;
+
+  let all = [];
+  try {
+    all = await window.loadQuestionsFromFirestore(forceRefresh);
+  } catch (err) {
+    console.error('Error loading questions list:', err);
+  }
+
+  if (!all || all.length === 0) {
+    listEl.innerHTML = `<div class="p-5 text-sm text-slate-400">No questions in the bank yet.</div>`;
+    return;
+  }
+
+  const diffBadge = {
+    easy: 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20',
+    medium: 'bg-amber-500/10 text-amber-400 border border-amber-500/20',
+    hard: 'bg-rose-500/10 text-rose-400 border border-rose-500/20'
+  };
+
+  listEl.innerHTML = all.map((q, idx) => {
+    const safeQuestion = (q.question || '(no text)').length > 90
+      ? q.question.slice(0, 90) + '…'
+      : (q.question || '(no text)');
+    const badgeClass = diffBadge[q.difficulty] || 'bg-slate-700 text-slate-300 border border-slate-600';
+
+    return `
+      <div class="flex items-center justify-between gap-4 p-4">
+        <div class="min-w-0">
+          <div class="flex items-center gap-2 mb-1">
+            <span class="text-xs font-mono text-slate-500">#${idx + 1}</span>
+            <span class="text-[10px] font-semibold uppercase px-2 py-0.5 rounded ${badgeClass}">${q.difficulty || '—'}</span>
+            <span class="text-[10px] font-semibold uppercase px-2 py-0.5 rounded bg-slate-700 text-slate-300">${q.category || '—'}</span>
+          </div>
+          <p class="text-sm text-slate-200 truncate">${safeQuestion}</p>
+        </div>
+        <button
+          type="button"
+          onclick="handleDeleteQuestion('${q.firestoreId}', ${idx + 1})"
+          class="shrink-0 bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/20 text-xs font-semibold px-3 py-2 rounded-lg transition"
+          title="Delete this question"
+        >
+          Delete
+        </button>
+      </div>
+    `;
+  }).join('');
+}
+
+async function handleDeleteQuestion(firestoreId, displayNumber) {
+  if (!firestoreId) {
+    if (typeof window.showToast === 'function') {
+      window.showToast('This question has no Firestore ID and cannot be deleted (likely from the local fallback bank).', true);
+    }
+    return;
+  }
+
+  const ok = confirm(`Delete question #${displayNumber}? This can't be undone.`);
+  if (!ok) return;
+
+  try {
+    await window.deleteQuestionFromFirestore(firestoreId);
+
+    if (typeof window.showToast === 'function') {
+      window.showToast('Question deleted.');
+    }
+
+    if (typeof window.refreshQuestionsFromCloud === 'function') {
+      await window.refreshQuestionsFromCloud(true);
+    }
+
+    await loadAndRenderQuestionsList(true);
+    await refreshAdminCounts();
+  } catch (err) {
+    console.error('Error deleting question:', err);
+    if (typeof window.showToast === 'function') {
+      window.showToast('Error deleting question: ' + err.message, true);
+    }
+  }
 }
 
 function toggleAdminQuestionType(type) {
@@ -305,8 +424,9 @@ async function handleSaveQuestion() {
     document.getElementById('admin-explanation-image').value = '';
     document.querySelector('input[name="admin-correct"][value="0"]').checked = true;
 
-    // 4. Пересчет нумерации
+    // 4. Пересчет нумерации и обновление списка вопросов
     await refreshAdminCounts();
+    await loadAndRenderQuestionsList(true);
   } catch (err) {
     console.error('Error saving question:', err);
     if (typeof window.showToast === 'function') {
@@ -326,3 +446,5 @@ window.refreshAdminCounts = refreshAdminCounts;
 window.refreshAdminUsersCount = refreshAdminUsersCount;
 window.refreshAdminStats = refreshAdminStats;
 window.handleSaveQuestion = handleSaveQuestion;
+window.loadAndRenderQuestionsList = loadAndRenderQuestionsList;
+window.handleDeleteQuestion = handleDeleteQuestion;

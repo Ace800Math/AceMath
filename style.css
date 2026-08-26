@@ -333,3 +333,43 @@ table td span[class*="rounded"] {
   font-weight: 600 !important;
   letter-spacing: 0.01em;
 }
+/* ==========================================================================
+   9. ФИКС КОНТРАСТА ОБЪЯСНЕНИЙ (EXPLANATION BOX FIX)
+   ========================================================================== */
+
+/* Если карточка объяснения тёмная — текст внутри НЕ ДОЛЖЕН быть тёмным */
+.bg-slate-800 p,
+.bg-slate-800 span,
+.bg-slate-800 div,
+div[id*="explanation"] p,
+div[id*="explanation"] span,
+div[id*="explanation"] {
+  color: var(--text-heading) !important;
+}
+
+/* Явное переопределение для блоков с объяснением в светлой/тёмной теме */
+body.light-theme .bg-slate-800,
+body.light-theme div[class*="bg-slate-800"] {
+  background-color: var(--bg-surface) !important;
+  color: var(--text-heading) !important;
+}
+
+/* Текст внутри блока solution/explanation */
+.am-explanation-box,
+[id*="explanation-container"],
+[id*="explanation-text"] {
+  background-color: var(--bg-surface-deep) !important;
+  border: 1px solid var(--border-default) !important;
+  color: var(--text-heading) !important;
+  padding: 1rem !important;
+  border-radius: var(--radius-md) !important;
+}
+
+/* Отдельный хак для текста внутри темных подсказок */
+.text-slate-400, .text-slate-300 {
+  color: var(--text-body) !important;
+}
+.am-explanation-content,
+.am-explanation-content * {
+  color: #f1f5f9 !important; /* slate-100 */
+}

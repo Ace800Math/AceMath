@@ -90,11 +90,6 @@ function renderUserProfile(profile) {
     if (homeExamDateEl) homeExamDateEl.innerText = rawDate;
     startCountdown(rawDate);
   }
-
-  // ИСПРАВЛЕНО: раньше тут читался ключ 'solved_questions_count', который
-  // никогда не записывался (loadAttemptsFromFirestore его не вызывали),
-  // поэтому счётчик всегда затирался нулём поверх правильного значения.
-  // Теперь просто не трогаем то, что уже правильно посчитано в practice.js.
 }
 
 /* МОДАЛЬНОЕ ОКНО РЕДАКТИРОВАНИЯ */
@@ -170,6 +165,17 @@ function saveEditModal() {
   }
 
   closeEditModal();
+}
+
+// Автоматически обновляем lastLogin в Firestore при запуске (безопасная проверка)
+if (typeof firebase !== 'undefined' && firebase.auth) {
+  firebase.auth().onAuthStateChanged((user) => {
+    if (user) {
+      firebase.firestore().collection("users").doc(user.uid).set({
+        lastLogin: firebase.firestore.FieldValue.serverTimestamp()
+      }, { merge: true });
+    }
+  });
 }
 
 window.switchTab = switchTab;

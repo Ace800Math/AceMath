@@ -106,6 +106,7 @@
       <div>
         <label class="block text-sm font-bold uppercase text-slate-300 mb-1">Password</label>
         <input type="password" id="login-password" required class="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 text-base focus:outline-none focus:border-indigo-500 text-white font-medium">
+        <button type="button" onclick="window.handleForgotPassword ? window.handleForgotPassword() : null" class="text-xs text-indigo-400 hover:underline font-semibold mt-1.5 cursor-pointer">Forgot password?</button>
       </div>
 
       <button type="submit" id="login-btn" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-3 rounded-lg transition duration-200 mt-2 text-lg shadow-md">Sign In</button>
@@ -423,14 +424,13 @@
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
 
   <!-- JS Скрипты приложения -->
-  <script src="firebase.js"></script>
-  <script src="validation.js"></script>
   <script src="questions.js"></script>
+  <script src="firebase.js"></script>
   <script src="auth.js"></script>
-  <script src="app.js"></script>
   <script src="practice.js"></script>
   <script src="progress.js"></script>
-  <script src="settings.js"></script>
   <script src="admin.js"></script>
+  <script src="settings.js"></script>
+  <script src="app.js"></script>
 </body>
 </html>

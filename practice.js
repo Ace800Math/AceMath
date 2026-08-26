@@ -59,7 +59,6 @@ function startQuestionTimer() {
 
   if (timerEl) timerEl.innerText = '00:00';
 
-  // БЕЗОПАСНАЯ ПРОВЕРКА: обновляем иконку только если элемент реально есть в DOM
   if (pauseIcon) {
     pauseIcon.innerHTML = `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z" />`;
   }
@@ -70,7 +69,6 @@ function startQuestionTimer() {
       const mins = String(Math.floor(secondsSpent / 60)).padStart(2, '0');
       const secs = String(secondsSpent % 60).padStart(2, '0');
 
-      // Повторно проверяем элемент внутри интервала на случай переключения табов
       const currentTimerEl = document.getElementById('question-timer');
       if (currentTimerEl) currentTimerEl.innerText = `${mins}:${secs}`;
     }
@@ -106,7 +104,7 @@ function renderPracticeDashboard() {
   container.innerHTML = `
     <div class="space-y-6 max-w-5xl mx-auto">
       <div>
-        <h2 class="text-2xl font-bold text-white tracking-tight">Create Your Session</h2>
+        <h2 class="text-2xl font-bold tracking-tight">Create Your Session</h2>
         <p class="text-sm text-slate-400 mt-0.5">Select filters to build a personalized practice test or launch single-item sessions.</p>
       </div>
 
@@ -176,7 +174,8 @@ function filterByStatus(questions) {
   const attempts = JSON.parse(localStorage.getItem(getUserAttemptsKey()) || '[]');
 
   return questions.filter(q => {
-    const qAttempts = attempts.filter(a => a.questionId === q.id);
+    const qId = q.firestoreId || q.id;
+    const qAttempts = attempts.filter(a => a.questionId === qId);
     const hasSolved = qAttempts.some(a => a.isCorrect);
     const hasFailed = qAttempts.some(a => !a.isCorrect);
 
@@ -210,7 +209,7 @@ function renderCategoryItem(categoryName, bank) {
           </svg>
         </div>
         <div>
-          <h4 class="text-sm font-bold text-white">${categoryName}</h4>
+          <h4 class="text-sm font-bold">${categoryName}</h4>
           <span class="text-xs text-slate-400">${catQuestions.length} questions available</span>
         </div>
       </div>
@@ -271,9 +270,10 @@ function renderActiveQuestion() {
   userInputValue = '';
   hasAttemptedCurrent = false;
 
+  // Картинка вопроса (с кликом для зума)
   const imageHTML = currentQuestion.image
     ? `<div class="my-4 flex justify-center bg-slate-900 p-4 rounded-xl border border-slate-700/80">
-         <img src="${currentQuestion.image}" alt="Figure" class="max-h-64 object-contain rounded-lg">
+         <img src="${currentQuestion.image}" alt="Figure" onclick="openImageModal(this.src)" class="max-h-64 object-contain rounded-lg cursor-pointer hover:opacity-90 transition" title="Click to enlarge">
        </div>`
     : '';
 
@@ -319,7 +319,7 @@ function renderActiveQuestion() {
 
         <div class="flex items-center gap-3">
           <button onclick="toggleDesmos()" class="bg-indigo-600 hover:bg-indigo-500 text-white border border-indigo-500 text-xs font-semibold px-4 py-2 rounded-xl transition shadow-md flex items-center gap-1.5">
-            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" /></svg>
+            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" /></svg>
             Calculator
           </button>
           <button onclick="renderPracticeDashboard()" class="text-xs font-bold text-slate-400 hover:text-white transition">
@@ -330,7 +330,7 @@ function renderActiveQuestion() {
 
       <!-- КАРТОЧКА ВОПРОСА -->
       <div class="bg-slate-800 p-8 rounded-2xl border border-slate-700/80 shadow-xl flex flex-col justify-center">
-        <p class="text-base sm:text-lg text-white font-medium leading-relaxed">${currentQuestion.question}</p>
+        <p class="text-base sm:text-lg font-medium leading-relaxed">${currentQuestion.question}</p>
         ${imageHTML}
       </div>
 
@@ -381,14 +381,14 @@ function renderActiveQuestion() {
 
     </div>
 
-    <!-- ВЫДВИЖНОЙ EXPLANATION ШТОРКА СНИЗУ (БОЛЬШИЕ БУКВЫ, МЕСТО ДЛЯ ГРАФИКОВ) -->
-    <div id="explanation-box" class="fixed inset-x-0 bottom-0 z-50 transform translate-y-full transition-transform duration-300 ease-out bg-slate-950 border-t-2 border-indigo-500 shadow-2xl max-h-[85vh] flex flex-col rounded-t-3xl">
+   <!-- ВЫДВИЖНОЙ EXPLANATION ШТОРКА СНИЗУ -->
+    <div id="explanation-box" class="fixed inset-x-0 bottom-0 z-50 transform translate-y-full transition-transform duration-300 ease-out bg-slate-900 dark:bg-slate-950 border-t-2 border-indigo-500 shadow-2xl max-h-[85vh] flex flex-col rounded-t-3xl">
       <div class="max-w-5xl w-full mx-auto p-8 flex flex-col h-full overflow-hidden">
-        <div class="flex items-center justify-between pb-6 border-b border-slate-800">
+        <div class="flex items-center justify-between pb-6 border-b border-slate-700/50">
           <div class="flex items-center gap-3">
             <span class="p-3 bg-indigo-600/20 border border-indigo-500/30 rounded-2xl text-indigo-400 text-2xl">💡</span>
             <div>
-              <h2 class="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">Step-by-Step Explanation</h2>
+              <h2 class="text-2xl sm:text-3xl font-extrabold text-slate-100 tracking-tight">Step-by-Step Explanation</h2>
               <p class="text-xs text-slate-400 mt-1">Detailed breakdown, graphs, and conceptual notes for this question</p>
             </div>
           </div>
@@ -397,14 +397,14 @@ function renderActiveQuestion() {
           </button>
         </div>
 
-        <div class="py-6 overflow-y-auto space-y-6 text-base sm:text-lg text-slate-200 leading-relaxed pr-2">
-          <div class="bg-slate-900/80 border border-slate-800 p-6 rounded-2xl shadow-inner">
+        <div class="py-6 overflow-y-auto space-y-6 text-base sm:text-lg leading-relaxed pr-2">
+          <div class="am-explanation-content bg-slate-800/90 text-slate-100 border border-slate-700 p-6 rounded-2xl shadow-inner">
             ${currentQuestion.explanation || 'No explanation available.'}
           </div>
 
           ${currentQuestion.explanationImage ? `
-            <div class="flex justify-center bg-slate-900 p-6 rounded-2xl border border-slate-800">
-              <img src="${currentQuestion.explanationImage}" alt="Explanation figure" class="max-h-96 object-contain rounded-xl shadow-lg">
+            <div class="flex justify-center bg-slate-800/90 p-6 rounded-2xl border border-slate-700">
+              <img src="${currentQuestion.explanationImage}" alt="Explanation figure" onclick="openImageModal(this.src)" class="max-h-96 object-contain rounded-xl shadow-lg cursor-pointer hover:opacity-90 transition" title="Click to enlarge">
             </div>
           ` : ''}
         </div>
@@ -573,7 +573,7 @@ function recordAttempt(question, isCorrect, timeSpent) {
 
   const attemptData = {
     userId: userId,
-    questionId: question.id || null,
+    questionId: question.firestoreId || question.id || null,
     category: question.category || 'General',
     difficulty: question.difficulty || 'Medium',
     isCorrect: Boolean(isCorrect),
@@ -581,7 +581,6 @@ function recordAttempt(question, isCorrect, timeSpent) {
     timestamp: new Date().toISOString()
   };
 
-  // 1. ВСЕГДА пишем в LocalStorage моментально
   try {
     const attempts = JSON.parse(localStorage.getItem(attemptsKey) || '[]');
     attempts.push(attemptData);
@@ -590,7 +589,6 @@ function recordAttempt(question, isCorrect, timeSpent) {
     console.error("Ошибка сохранения в LocalStorage:", e);
   }
 
-  // 2. Отправка в Firestore (если есть функция-обертка или напрямую)
   if (typeof window.saveAttemptToFirestore === 'function') {
     window.saveAttemptToFirestore(attemptData);
   } else if (typeof db !== 'undefined' && userId !== 'guest_user') {
@@ -643,9 +641,39 @@ function checkAnswer() {
       if (selectedBtn) selectedBtn.className = "opt-btn bg-rose-950/60 border-2 border-rose-500 p-4 rounded-xl text-left text-sm font-semibold transition text-rose-200 shadow-md";
     }
   }
+}
 
-  // Вызываем плавное открытие шторки после ответа
-  toggleExplanationBox();
+// --- МОДАЛКА ДЛЯ ПРОСМОТРА КАРТИНОК (LIGHTBOX) ---
+function openImageModal(src) {
+  let modal = document.getElementById('image-lightbox-modal');
+  if (!modal) {
+    modal = document.createElement('div');
+    modal.id = 'image-lightbox-modal';
+    modal.className = 'fixed inset-0 z-[100] bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 transition-opacity duration-200 opacity-0 pointer-events-none';
+    modal.innerHTML = `
+      <div class="relative max-w-5xl max-h-[90vh] flex flex-col items-center">
+        <button onclick="closeImageModal()" class="absolute -top-12 right-0 text-white hover:text-slate-300 text-sm font-bold bg-slate-800/90 px-3 py-1.5 rounded-lg border border-slate-600 transition shadow">
+          ✕ Close
+        </button>
+        <img id="lightbox-img" src="" alt="Enlarged view" class="max-w-full max-h-[85vh] object-contain rounded-xl border border-slate-700 shadow-2xl">
+      </div>
+    `;
+    modal.onclick = (e) => {
+      if (e.target === modal) closeImageModal();
+    };
+    document.body.appendChild(modal);
+  }
+
+  const img = modal.querySelector('#lightbox-img');
+  img.src = src;
+  modal.classList.remove('opacity-0', 'pointer-events-none');
+}
+
+function closeImageModal() {
+  const modal = document.getElementById('image-lightbox-modal');
+  if (modal) {
+    modal.classList.add('opacity-0', 'pointer-events-none');
+  }
 }
 
 // Экспорт
@@ -660,3 +688,5 @@ window.toggleDesmos = toggleDesmos;
 window.toggleTimerPause = toggleTimerPause;
 window.navigateQuestion = navigateQuestion;
 window.toggleExplanationBox = toggleExplanationBox;
+window.openImageModal = openImageModal;
+window.closeImageModal = closeImageModal;

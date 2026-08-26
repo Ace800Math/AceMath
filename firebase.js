@@ -211,6 +211,17 @@ window.getTotalUsersCount = async function() {
   }
 };
 
+// Удаление вопроса (только для админа — доступ уже проверяется в UI через
+// isCurrentUserAdmin, но также стоит продублировать правило в Firestore
+// Security Rules: allow delete: if request.auth.token.email in [...]).
+window.deleteQuestionFromFirestore = async function(firestoreId) {
+  if (!firestoreId) return;
+  await db.collection("questions").doc(firestoreId).delete();
+  // Сбрасываем локальный кэш, чтобы удалённый вопрос сразу пропал у всех
+  // при следующей подгрузке банка вопросов.
+  localStorage.removeItem('cached_questions');
+};
+
 // Экспорт в глобальную область
 window.firebaseAuth = {
   registerUser,

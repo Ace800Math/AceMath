@@ -57,12 +57,20 @@ function renderProgressDashboard() {
     if (t >= startOfMonth) monthSeconds += timeSpent;
   });
 
+  // Логика округления: < 30 сек -> 0 min, >= 30 сек -> 1 min; 60+ мин -> 1 hrs X min
   const formatTime = (secs) => {
-    if (secs < 60) return `${secs} sec`;
-    const mins = Math.round(secs / 60);
-    if (mins < 60) return `${mins} min`;
-    const hours = (mins / 60).toFixed(1);
-    return `${hours} hrs`;
+    if (!secs || secs <= 0) return '0 min';
+
+    // Округляем секунды до ближайшей минуты (26s -> 0 min, 49s -> 1 min)
+    const totalMinutes = Math.round(secs / 60);
+
+    if (totalMinutes < 60) {
+      return `${totalMinutes} min`;
+    }
+
+    const hours = Math.floor(totalMinutes / 60);
+    const mins = totalMinutes % 60;
+    return `${hours} hrs ${mins} min`;
   };
 
   // 4. Подготовка данных для графика (15 дней)
@@ -93,11 +101,10 @@ function renderProgressDashboard() {
   let chartBarsHtml = '';
   last15Days.forEach(day => {
     const heightPercent = Math.max(Math.round((day.seconds / maxSecs) * 100), 8);
-    const mins = Math.round(day.seconds / 60);
     chartBarsHtml += `
       <div class="flex flex-col items-center flex-1 h-full justify-end group relative">
         <div class="absolute -top-8 bg-slate-800 text-slate-200 border border-slate-700 text-[10px] px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition pointer-events-none whitespace-nowrap z-10">
-          ${day.label}: ${mins} min
+          ${day.label}: ${formatTime(day.seconds)}
         </div>
         <div class="w-full bg-indigo-600 hover:bg-indigo-500 rounded-t transition-all duration-300" style="height: ${heightPercent}%"></div>
         <span class="text-[10px] text-slate-400 mt-2 truncate w-full text-center">${day.label.split(' ')[0]}</span>
@@ -137,9 +144,8 @@ function renderProgressDashboard() {
     difficulties.forEach(diff => {
       const data = statsMap[cat][diff];
       if (data.total > 0) {
-        // Считаем РЕАЛЬНОЕ среднее время решения
         const avgTime = Math.round(data.timeSum / data.total);
-        timeCells += `<td class="py-3 px-4 text-slate-200 font-medium">${avgTime}s</td>`;
+        timeCells += `<td class="py-3 px-4 text-slate-200 font-medium">${formatTime(avgTime)}</td>`;
 
         const acc = Math.round((data.correct / data.total) * 100);
         accCells += `<td class="py-3 px-4"><span class="px-2.5 py-1 rounded text-xs font-semibold ${acc >= 80 ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : acc >= 50 ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20' : 'bg-rose-500/10 text-rose-400 border border-rose-500/20'}">${acc}%</span></td>`;
@@ -193,7 +199,7 @@ function renderProgressDashboard() {
             </svg>
           </div>
           <div>
-            <span class="text-xs font-semibold uppercase text-slate-400 tracking-wider block">Today Time</span>
+            <span class="text-xs font-semibold uppercase text-slate-400 tracking-wider block">Today</span>
             <div class="text-xl font-bold text-indigo-400 mt-0.5">${formatTime(todaySeconds)}</div>
           </div>
         </div>
@@ -232,7 +238,7 @@ function renderProgressDashboard() {
       </div>
 
       <div class="bg-slate-800 p-5 rounded-xl border border-slate-700/80 space-y-3">
-        <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider">Average Time Per Question (Seconds)</h3>
+        <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider">Average Time Per Question (Minutes)</h3>
         <div class="overflow-x-auto">
           <table class="w-full text-left text-xs">
             <thead>
