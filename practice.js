@@ -14,6 +14,50 @@ let desmosState = {
   });
 })();
 
+// Функция выгрузки истории из Firebase (с проверкой кэша)
+async function syncAttemptsFromFirebase() {
+  const userId = getCurrentUserId();
+  if (!userId || userId === 'guest_user' || typeof db === 'undefined') return;
+
+  const attemptsKey = getUserAttemptsKey();
+  const localData = localStorage.getItem(attemptsKey);
+
+  // ПРОВЕРКА КЭША: Если данные в кэше есть — Firebase не трогаем (0 reads)
+  if (localData && JSON.parse(localData).length > 0) {
+    return;
+  }
+
+  try {
+    const snapshot = await db.collection("users").doc(userId).collection("attempts").get();
+
+    if (!snapshot.empty) {
+      const attempts = [];
+      snapshot.forEach(doc => attempts.push(doc.data()));
+
+      // Восстанавливаем localStorage
+      localStorage.setItem(attemptsKey, JSON.stringify(attempts));
+
+      // Обновляем счётчик
+      solvedCount = attempts.filter(a => a.isCorrect).length;
+      const initialSolvedEl = document.getElementById('home-solved-count');
+      if (initialSolvedEl) initialSolvedEl.innerText = solvedCount;
+    }
+  } catch (err) {
+    console.error("Ошибка загрузки данных из Firebase:", err);
+  }
+}
+
+// Запускаем синхронизацию ПОСЛЕ того, как Firebase подтянет юзера
+if (typeof firebase !== 'undefined' && firebase.auth) {
+  firebase.auth().onAuthStateChanged((user) => {
+    if (user) {
+      syncAttemptsFromFirebase();
+    }
+  });
+} else {
+  syncAttemptsFromFirebase();
+}
+
 function getCurrentUserId() {
   const fbUser = (typeof firebase !== 'undefined' && firebase.auth) ? firebase.auth().currentUser : null;
   return fbUser ? fbUser.uid : (window.currentUserId || localStorage.getItem('current_user_id') || 'guest_user');
@@ -257,7 +301,7 @@ function renderActiveQuestion() {
   let answerBlockHtml = isInputType ? `
     <div class="space-y-3 max-w-sm">
       <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider">Your Answer</label>
-      <input type="text" id="student-answer-input" oninput="handleInputChange(this.value)" placeholder="e.g. 12 or 3/4" class="w-full bg-white border border-slate-900 text-slate-900 rounded-xl px-4 py-3 text-base focus:outline-none focus:ring-2 focus:ring-slate-900 font-mono transition">
+      <input type="text" id="student-answer-input" oninput="handleInputChange(this.value)" placeholder="e.g. 12 or 3/4" class="w-full bg-white border-2 border-slate-900 text-slate-900 rounded-xl px-4 py-3 text-base focus:outline-none focus:ring-2 focus:ring-indigo-500 font-mono transition">
     </div>
   ` : `
     <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
@@ -318,7 +362,7 @@ function renderActiveQuestion() {
         ${answerBlockHtml}
         <div id="feedback-msg" class="text-xs font-bold min-h-[1rem]"></div>
         <div class="flex items-center justify-between pt-2 border-t border-slate-100">
-          <button onclick="checkAnswer()" id="submit-ans-btn" class="bg-emerald-500 hover:bg-emerald-600 text-white font-semibold px-5 py-2 rounded-lg text-xs transition disabled:opacity-40 shadow" disabled>
+          <button onclick="checkAnswer()" id="submit-ans-btn" class="bg-slate-200 text-slate-400 font-bold px-6 py-2.5 rounded-xl text-xs transition cursor-not-allowed shadow-none" disabled>
             Check Answer
           </button>
         </div>
@@ -562,7 +606,21 @@ function parseNumericAnswer(raw) {
   const num = parseFloat(str);
   return isNaN(num) ? null : num;
 }
+function handleInputChange(val) {
+  userInputValue = val.trim();
+  const submitBtn = document.getElementById('submit-ans-btn');
+  if (!submitBtn) return;
 
+  if (userInputValue.length > 0) {
+    // Ввели ответ: активируем и делаем яркой
+    submitBtn.disabled = false;
+    submitBtn.className = "bg-emerald-500 hover:bg-emerald-600 text-white font-bold px-6 py-2.5 rounded-xl text-xs transition cursor-pointer shadow-md";
+  } else {
+    // Поле пустое: блокируем и возвращаем блёклый цвет
+    submitBtn.disabled = true;
+    submitBtn.className = "bg-slate-200 text-slate-400 font-bold px-6 py-2.5 rounded-xl text-xs transition cursor-not-allowed shadow-none";
+  }
+}
 function checkAnswer() {
   const currentQuestion = filteredQuestions[currentQuestionIndex];
   const isInputType = Array.isArray(currentQuestion.options) && currentQuestion.options.length === 0;
