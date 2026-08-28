@@ -37,6 +37,16 @@ function switchTab(tabName) {
       }
     }
   });
+
+  // ПОКАЗЫВАЕМ ШАПКУ ВЕЗДЕ, КРОМЕ PRACTICE
+  const welcomeHeader = document.querySelector('#app-screen header, .bg-slate-800.rounded-xl.border.border-slate-700.px-6.py-5.mb-6');
+  if (welcomeHeader) {
+    if (tabName === 'practice') {
+      welcomeHeader.classList.add('hidden');
+    } else {
+      welcomeHeader.classList.remove('hidden');
+    }
+  }
 }
 
 function startCountdown(dateStr) {

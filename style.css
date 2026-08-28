@@ -1,7 +1,7 @@
 @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap');
 
 /* ==========================================================================
-   1. ДИЗАЙН-ТОКЕНЫ И ПЕРЕМЕННЫЕ
+   1. ДИЗАЙН-ТОКЕНЫ И ПЕРЕМЕННЫЕ (DARK MODE BY DEFAULT)
    ========================================================================== */
 :root {
   color-scheme: dark;
@@ -42,9 +42,9 @@
   --warning: #fbbf24;
   --danger: #fb7185;
 
-  --radius-sm: 10px;
-  --radius-md: 14px;
-  --radius-lg: 18px;
+  --radius-sm: 8px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
 }
 
 /* ==========================================================================
@@ -65,20 +65,27 @@ body.light-theme {
   --border-subtle: #edf0f5;
   --border-strong: #b7c0d1;
 
-  --text-heading: #1f2733;
-  --text-body: #45526a;
-  --text-muted: #7c869c;
+  --text-heading: #0f172a;
+  --text-body: #334155;
+  --text-muted: #64748b;
   --text-faint: #0f172a;
-  --text-disabled: #b2bacb;
+  --text-disabled: #94a3b8;
 
   --shadow-glow: 0 4px 16px rgba(15, 23, 42, 0.06);
   --shadow-soft: 0 4px 16px rgba(15, 23, 42, 0.06);
 }
 
 /* ==========================================================================
-   3. МЯГКИЕ ШРИФТЫ И СГЛАЖИВАНИЕ
+   3. ГЛОБАЛЬНЫЕ СТИЛИ И ТИПОГРАФИКА
    ========================================================================== */
-body, p, span, label, div, td, th, button, input, select, textarea {
+*:not(#desmos-calculator-container *),
+*::before:not(#desmos-calculator-container *),
+*::after:not(#desmos-calculator-container *) {
+  box-sizing: border-box;
+}
+
+body, p, span, label, div, td, th, input, select, textarea,
+button:not([class*="dcg-"]):not(#desmos-calculator-container *) {
   font-family: 'Plus Jakarta Sans', sans-serif !important;
   letter-spacing: -0.005em;
   -webkit-font-smoothing: antialiased;
@@ -88,7 +95,6 @@ body, p, span, label, div, td, th, button, input, select, textarea {
 .font-mono, .am-card .font-mono, [class*="font-mono"] {
   font-family: 'JetBrains Mono', monospace !important;
   letter-spacing: normal;
-  -webkit-font-smoothing: antialiased;
 }
 
 body {
@@ -96,7 +102,7 @@ body {
   padding: 0;
   background-color: var(--bg-app);
   color: var(--text-body);
-  font-size: 1.08rem !important;
+  font-size: 13px;
   transition: background-color 0.35s ease, color 0.35s ease;
 }
 
@@ -105,58 +111,43 @@ body {
 }
 
 .logo-img {
-  max-width: 80px;
-  max-height: 80px;
+  max-width: 65px;
+  max-height: 65px;
   object-fit: contain;
+}
+
+/* ==========================================================================
+   4. КОМПАКТНЫЙ САЙДБАР И ХЕДЕР
+   ========================================================================== */
+aside, .sidebar, nav.sidebar, [class*="sidebar"] {
+  width: 170px !important;
+  min-width: 170px !important;
+  padding: 10px !important;
+  background-color: var(--sidebar-bg) !important;
 }
 
 body.light-theme aside,
 body.light-theme .sidebar,
 body.light-theme nav.sidebar {
-  background-color: var(--sidebar-bg) !important;
   border-right: 1px solid var(--border-default);
 }
 
-/* ==========================================================================
-   4. МЯГКАЯ ТИПОГРАФИКА
-   ========================================================================== */
-p, span, label, td, th {
-  font-size: 1.05rem !important;
+aside a, .sidebar a, nav.sidebar a,
+aside button, .sidebar button, nav.sidebar button {
+  font-size: 12px !important;
+  padding: 6px 10px !important;
 }
 
-aside nav button, .sidebar nav button, aside nav a, .sidebar nav a {
-  font-size: 1.05rem !important;
-  font-weight: 600 !important;
-}
-
-h1, .text-3xl, .text-4xl { font-size: 2.1rem !important; font-weight: 700 !important; letter-spacing: -0.02em !important; }
-h2, .text-2xl            { font-size: 1.55rem !important; font-weight: 700 !important; letter-spacing: -0.015em !important; }
-h3, .text-xl             { font-size: 1.22rem !important; font-weight: 600 !important; }
-
-.am-card .font-mono,
-.am-card [class*="font-mono"] {
-  font-size: 1.9rem !important;
-  font-weight: 700 !important;
-}
-
-button, .filter-btn, .am-badge {
-  font-size: 1rem !important;
-  font-weight: 600 !important;
-}
-
-button {
+button:not([class*="dcg-"]):not(#desmos-calculator-container *) {
   border-radius: var(--radius-md) !important;
   transition: all 0.2s ease !important;
+  font-size: 12px !important;
+  padding: 6px 12px !important;
 }
 
-.rounded-xl, .rounded-2xl {
-  border-radius: var(--radius-lg) !important;
-}
-.rounded-lg {
-  border-radius: var(--radius-md) !important;
-}
+.rounded-xl, .rounded-2xl { border-radius: var(--radius-lg) !important; }
+.rounded-lg { border-radius: var(--radius-md) !important; }
 
-/* ЖЁСТКИЙ ФИКС ВЕРХНЕЙ ПАНЕЛИ И ПОЛЬЗОВАТЕЛЯ */
 #app-screen header *,
 .bg-slate-800.rounded-xl.border.border-slate-700.px-6.py-5 span,
 .bg-slate-800.rounded-xl.border.border-slate-700.px-6.py-5 div,
@@ -166,18 +157,20 @@ button {
 
 #user-welcome {
   color: var(--text-heading) !important;
+  font-size: 18px !important;
 }
 
-/* ФИКС ПИЛЮЛЬ В ПРАВОМ ВЕРХНЕМ УГЛУ */
 .bg-slate-900\/90 {
   background-color: var(--bg-pill) !important;
   border-color: var(--border-default) !important;
   color: var(--text-body) !important;
+  padding: 4px 10px !important;
+  font-size: 12px !important;
 }
+
 .bg-slate-900\/90 *,
-.bg-slate-900\/90 span {
-  color: var(--text-body) !important;
-}
+.bg-slate-900\/90 span { color: var(--text-body) !important; }
+
 .bg-slate-900\/90 .font-bold,
 .bg-slate-900\/90 span.font-bold,
 .bg-slate-900\/90 span[id^="user-"] {
@@ -185,43 +178,102 @@ button {
 }
 
 /* ==========================================================================
-   5. МАППИНГ TAILWIND КЛАССОВ
+   5. ДВУХКОЛОНОЧНАЯ СЕТКА И КАРТОЧКИ PRACTICE
    ========================================================================== */
-.bg-slate-900          { background-color: var(--bg-app) !important; }
-.bg-slate-800          { background-color: var(--bg-surface) !important; }
-.bg-slate-950          { background-color: var(--bg-surface-deep) !important; }
-.bg-slate-700          { background-color: var(--bg-elevated-hover) !important; }
-.bg-slate-800\/80      { background-color: color-mix(in srgb, var(--bg-surface) 80%, transparent) !important; }
-.hover\:bg-slate-600:hover    { background-color: var(--bg-elevated-hover-2) !important; }
-.hover\:bg-slate-700:hover    { background-color: var(--bg-elevated-hover) !important; }
-.hover\:bg-slate-800:hover    { background-color: var(--bg-surface) !important; }
+.practice-container,
+main .grid,
+#practice-screen,
+.practice-workspace {
+  display: flex !important;
+  gap: 16px !important;
+  width: 100% !important;
+  max-width: 1280px !important;
+  margin: 0 auto !important;
+  align-items: stretch !important;
+  position: relative !important;
+}
 
-.border-slate-700      { border-color: var(--border-default) !important; }
-.border-slate-800      { border-color: var(--border-subtle) !important; }
-.border-slate-600      { border-color: var(--border-strong) !important; }
+.question-container,
+.question-card,
+#question-box,
+main .flex-1 {
+  flex: 1 !important;
+  min-width: 0 !important;
+  max-width: 800px !important;
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: space-between !important;
+}
 
-.text-white            { color: var(--text-heading) !important; }
-.text-slate-200        { color: var(--text-heading) !important; }
-.text-slate-300        { color: var(--text-body) !important; }
-.text-slate-400        { color: var(--text-body) !important; }
-.text-slate-600        { color: var(--text-muted) !important; }
-.hover\:text-white:hover { color: var(--text-heading) !important; }
+/* Контейнеры картинок в вопросах и объяснениях */
+.question-container img,
+.question-card img,
+#question-box img,
+#practice-main-content img,
+#explanation-box img {
+  max-height: 220px !important;
+  width: auto !important;
+  object-fit: contain !important;
+  border-radius: var(--radius-md) !important;
+  border: 1px solid var(--border-default) !important;
+  background-color: var(--bg-surface-deep) !important;
+  padding: 8px !important;
+}
 
-.text-indigo-400, .text-indigo-500, .text-indigo-600 { color: var(--accent) !important; }
-.hover\:text-indigo-300:hover { color: var(--accent-hover) !important; }
-.bg-indigo-600         { background-color: var(--accent) !important; color: #06281c !important; }
-.hover\:bg-indigo-500:hover   { background-color: var(--accent-hover) !important; }
-.border-indigo-500     { border-color: var(--accent) !important; }
+.answer-option,
+[class*="answer-btn"],
+.answers-grid button {
+  padding: 8px 12px !important;
+  font-size: 12px !important;
+}
 
 /* ==========================================================================
-   6. КАСТОМНЫЕ КОМПОНЕНТЫ (AM-*)
+   6. TAILWIND ОВЕРРАЙДЫ И ИСПРАВЛЕНИЕ ТЕМНЫХ/СВЕТЛЫХ БЛОКОВ
+   ========================================================================== */
+.bg-slate-900:not(#desmos-calculator-container *) { background-color: var(--bg-app) !important; }
+.bg-slate-800:not(#desmos-calculator-container *) { background-color: var(--bg-surface) !important; }
+.bg-slate-950:not(#desmos-calculator-container *) { background-color: var(--bg-surface-deep) !important; }
+.bg-slate-700:not(#desmos-calculator-container *) { background-color: var(--bg-elevated-hover) !important; }
+.bg-slate-800\/80:not(#desmos-calculator-container *) { background-color: color-mix(in srgb, var(--bg-surface) 80%, transparent) !important; }
+
+.bg-white:not(#desmos-calculator-container *) {
+  background-color: var(--bg-surface) !important;
+}
+
+.hover\:bg-slate-600:hover:not(#desmos-calculator-container *) { background-color: var(--bg-elevated-hover-2) !important; }
+.hover\:bg-slate-700:hover:not(#desmos-calculator-container *) { background-color: var(--bg-elevated-hover) !important; }
+.hover\:bg-slate-800:hover:not(#desmos-calculator-container *) { background-color: var(--bg-surface) !important; }
+
+.border-slate-700:not(#desmos-calculator-container *),
+.border-slate-200:not(#desmos-calculator-container *) { border-color: var(--border-default) !important; }
+.border-slate-800:not(#desmos-calculator-container *) { border-color: var(--border-subtle) !important; }
+.border-slate-600:not(#desmos-calculator-container *) { border-color: var(--border-strong) !important; }
+
+.text-white:not(#desmos-calculator-container *)     { color: var(--text-heading) !important; }
+.text-slate-200:not(#desmos-calculator-container *) { color: var(--text-heading) !important; }
+.text-slate-300:not(#desmos-calculator-container *) { color: var(--text-body) !important; }
+.text-slate-400:not(#desmos-calculator-container *) { color: var(--text-body) !important; }
+.text-slate-600:not(#desmos-calculator-container *) { color: var(--text-muted) !important; }
+.text-slate-700:not(#desmos-calculator-container *),
+.text-slate-800:not(#desmos-calculator-container *),
+.text-slate-900:not(#desmos-calculator-container *) { color: var(--text-heading) !important; }
+
+.text-indigo-400:not(#desmos-calculator-container *),
+.text-indigo-500:not(#desmos-calculator-container *),
+.text-indigo-600:not(#desmos-calculator-container *) { color: var(--accent) !important; }
+.bg-indigo-600:not(#desmos-calculator-container *)   { background-color: var(--accent) !important; color: #06281c !important; }
+
+/* ==========================================================================
+   7. КАСТОМНЫЕ AM-* КОМПОНЕНТЫ
    ========================================================================== */
 .am-card {
   background-color: var(--bg-surface);
   border: 1px solid var(--border-default);
   border-radius: var(--radius-lg);
   transition: all 0.25s ease;
+  padding: 12px !important;
 }
+
 .am-card:hover {
   border-color: var(--accent) !important;
   box-shadow: var(--shadow-glow);
@@ -241,12 +293,16 @@ button {
   gap: .35rem;
   font-weight: 600;
   border-radius: var(--radius-sm);
-  padding: 0.4rem 0.8rem;
-  font-size: 0.85rem !important;
+  padding: 0.3rem 0.6rem;
+  font-size: 0.75rem !important;
   letter-spacing: 0.02em;
-  text-transform: none;
 }
-.am-badge-accent { background-color: rgba(52, 211, 153, 0.12); color: var(--accent); border: 1px solid rgba(52, 211, 153, 0.25); }
+
+.am-badge-accent {
+  background-color: rgba(52, 211, 153, 0.12);
+  color: var(--accent);
+  border: 1px solid rgba(52, 211, 153, 0.25);
+}
 
 .bg-slate-800.rounded-xl,
 .bg-slate-800.rounded-2xl,
@@ -255,12 +311,12 @@ button {
 }
 
 /* ==========================================================================
-   7. ПЕРЕКЛЮЧАТЕЛЬ ТЕМЫ
+   8. ПЕРЕКЛЮЧАТЕЛЬ ТЕМЫ
    ========================================================================== */
 .theme-toggle-btn {
   position: relative;
-  width: 42px;
-  height: 42px;
+  width: 34px;
+  height: 34px;
   border-radius: var(--radius-sm);
   background-color: var(--bg-pill);
   border: 1px solid var(--border-default);
@@ -272,13 +328,15 @@ button {
   transition: all 0.2s ease;
   outline: none;
 }
+
 .theme-toggle-btn:hover {
   border-color: var(--accent);
   box-shadow: var(--shadow-glow);
 }
+
 .theme-toggle-btn svg {
-  width: 19px;
-  height: 19px;
+  width: 16px;
+  height: 16px;
   position: absolute;
   transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease;
 }
@@ -290,7 +348,7 @@ body.light-theme .sun-icon { transform: rotate(0deg) scale(1); opacity: 1; color
 body.light-theme .moon-icon { transform: rotate(-90deg) scale(0); opacity: 0; }
 
 /* ==========================================================================
-   8. МЯГКИЕ ТАБЛИЦЫ
+   9. ТАБЛИЦЫ
    ========================================================================== */
 table {
   border-collapse: separate !important;
@@ -298,12 +356,13 @@ table {
 }
 
 table thead th {
-  font-size: 0.72rem !important;
+  font-size: 0.7rem !important;
   font-weight: 600 !important;
   letter-spacing: 0.06em;
   color: var(--text-muted) !important;
   background-color: color-mix(in srgb, var(--bg-app) 60%, transparent);
   border-bottom: 1px solid var(--border-default) !important;
+  padding: 6px 10px !important;
 }
 
 table tbody tr {
@@ -319,7 +378,8 @@ table tbody tr:hover td {
 }
 
 table td, table th {
-  font-size: 0.92rem !important;
+  font-size: 0.85rem !important;
+  padding: 6px 10px !important;
 }
 
 .overflow-x-auto table {
@@ -333,43 +393,79 @@ table td span[class*="rounded"] {
   font-weight: 600 !important;
   letter-spacing: 0.01em;
 }
+
 /* ==========================================================================
-   9. ФИКС КОНТРАСТА ОБЪЯСНЕНИЙ (EXPLANATION BOX FIX)
+   10. EXPLANATION DRAWER (ПОЯСНЕНИЯ К ВОПРОСАМ)
    ========================================================================== */
-
-/* Если карточка объяснения тёмная — текст внутри НЕ ДОЛЖЕН быть тёмным */
-.bg-slate-800 p,
-.bg-slate-800 span,
-.bg-slate-800 div,
-div[id*="explanation"] p,
-div[id*="explanation"] span,
-div[id*="explanation"] {
-  color: var(--text-heading) !important;
-}
-
-/* Явное переопределение для блоков с объяснением в светлой/тёмной теме */
-body.light-theme .bg-slate-800,
-body.light-theme div[class*="bg-slate-800"] {
+#explanation-box {
   background-color: var(--bg-surface) !important;
+  border-color: var(--border-default) !important;
+  box-shadow: var(--shadow-soft) !important;
+}
+
+#explanation-box h2,
+#explanation-box p,
+#explanation-box span,
+#explanation-box div {
   color: var(--text-heading) !important;
 }
 
-/* Текст внутри блока solution/explanation */
 .am-explanation-box,
 [id*="explanation-container"],
-[id*="explanation-text"] {
+[id*="explanation-text"],
+#explanation-box .overflow-y-auto > div {
   background-color: var(--bg-surface-deep) !important;
   border: 1px solid var(--border-default) !important;
   color: var(--text-heading) !important;
   padding: 1rem !important;
   border-radius: var(--radius-md) !important;
+  word-break: break-word !important;
+  overflow-wrap: anywhere !important;
+  white-space: pre-wrap !important;
 }
 
-/* Отдельный хак для текста внутри темных подсказок */
-.text-slate-400, .text-slate-300 {
-  color: var(--text-body) !important;
+#explanation-box button {
+  background-color: var(--bg-pill) !important;
+  color: var(--text-heading) !important;
+  border: 1px solid var(--border-default) !important;
 }
-.am-explanation-content,
-.am-explanation-content * {
-  color: #f1f5f9 !important; /* slate-100 */
+
+#explanation-box button:hover {
+  background-color: var(--bg-elevated-hover) !important;
+  border-color: var(--accent) !important;
+}
+
+/* ==========================================================================
+   11. ГЛОБАЛЬНЫЕ ФИКСЫ КНОПОК И ТАЙМЕРА (ИСКЛЮЧАЯ DESMOS)
+   ========================================================================== */
+body:not(.light-theme) [id*="timer"],
+body:not(.light-theme) button:not([class*="dcg-"]):not(#desmos-calculator-container *),
+body:not(.light-theme) .bg-white:not(#desmos-calculator-container *),
+body:not(.light-theme) .bg-slate-100:not(#desmos-calculator-container *) {
+  background-color: var(--bg-surface-deep) !important;
+  color: var(--text-heading) !important;
+  border: 1px solid var(--border-default) !important;
+}
+
+body:not(.light-theme) [id*="timer"] *,
+body:not(.light-theme) button:not([class*="dcg-"]):not(#desmos-calculator-container *) * {
+  color: var(--text-heading) !important;
+}
+
+body:not(.light-theme) button.bg-emerald-500:not(#desmos-calculator-container *),
+body:not(.light-theme) button[class*="emerald"]:not(#desmos-calculator-container *) {
+  background-color: var(--accent) !important;
+  color: #06281c !important;
+  border: none !important;
+}
+
+/* ==========================================================================
+   12. ПОЛНАЯ ИЗОЛЯЦИЯ DESMOS ОТ САЙТА
+   ========================================================================== */
+#desmos-calculator-container {
+  all: initial;
+  display: block;
+  width: 100%;
+  height: 100%;
+  position: relative;
 }

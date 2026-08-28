@@ -1,3 +1,9 @@
+let desmosState = {
+  top: '64px',
+  left: '16px',
+  width: '420px',
+  height: '500px'
+};
 // --- АВТО-ПАТЧ ID ДЛЯ ВОПРОСОВ ---
 (function ensureQuestionIds() {
   const bank = window.questions || window.questionBank || [];
@@ -8,7 +14,6 @@
   });
 })();
 
-// Получение гарантированно актуального UID текущего юзера
 function getCurrentUserId() {
   const fbUser = (typeof firebase !== 'undefined' && firebase.auth) ? firebase.auth().currentUser : null;
   return fbUser ? fbUser.uid : (window.currentUserId || localStorage.getItem('current_user_id') || 'guest_user');
@@ -28,7 +33,6 @@ let selectedOption = null;
 let userInputValue = '';
 let hasAttemptedCurrent = false;
 
-// Восстанавливаем счётчик решённых вопросов для конкретного юзера
 const savedAttempts = JSON.parse(localStorage.getItem(getUserAttemptsKey()) || '[]');
 let solvedCount = savedAttempts.filter(a => a.isCorrect).length;
 const initialSolvedEl = document.getElementById('home-solved-count');
@@ -38,17 +42,10 @@ let totalSecondsSpent = 0;
 let desmosCalculator = null;
 let isDesmosOpen = false;
 
-// Состояние фильтров
-let activeDifficulties = {
-  easy: false,
-  medium: false,
-  hard: false
-};
-
+let activeDifficulties = { easy: false, medium: false, hard: false };
 let activeStatusFilter = 'all';
 
-// --- ФУНКЦИИ ТАЙМЕРА ---
-
+// --- ТАЙМЕР ---
 function startQuestionTimer() {
   if (questionTimerInterval) clearInterval(questionTimerInterval);
   secondsSpent = 0;
@@ -58,7 +55,6 @@ function startQuestionTimer() {
   const pauseIcon = document.getElementById('timer-pause-icon');
 
   if (timerEl) timerEl.innerText = '00:00';
-
   if (pauseIcon) {
     pauseIcon.innerHTML = `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z" />`;
   }
@@ -68,7 +64,6 @@ function startQuestionTimer() {
       secondsSpent++;
       const mins = String(Math.floor(secondsSpent / 60)).padStart(2, '0');
       const secs = String(secondsSpent % 60).padStart(2, '0');
-
       const currentTimerEl = document.getElementById('question-timer');
       if (currentTimerEl) currentTimerEl.innerText = `${mins}:${secs}`;
     }
@@ -92,8 +87,7 @@ function stopQuestionTimer() {
   return secondsSpent;
 }
 
-// --- ОТРИСОВКА ДАШБОРДА ПРАКТИКИ ---
-
+// --- ДАШБОРД ПРАКТИКИ ---
 function renderPracticeDashboard() {
   stopQuestionTimer();
   const container = document.getElementById('sec-practice');
@@ -111,46 +105,29 @@ function renderPracticeDashboard() {
       <div class="bg-slate-800 p-5 rounded-xl border border-slate-700/80 space-y-4">
         <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400">General Filters</h3>
         <div class="flex flex-wrap gap-4">
-          
           <div class="bg-slate-900 p-4 rounded-xl border border-slate-700/60">
             <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider block mb-3">Difficulty</span>
             <div class="grid grid-cols-3 gap-3 text-center">
-              <button onclick="toggleDifficulty('easy')" class="py-2.5 px-5 rounded-lg border text-xs font-bold transition ${activeDifficulties.easy ? 'bg-indigo-600 border-indigo-500 text-white' : 'bg-slate-800 border-slate-700 text-slate-300 hover:bg-slate-700'}">
-                Easy
-              </button>
-              <button onclick="toggleDifficulty('medium')" class="py-2.5 px-5 rounded-lg border text-xs font-bold transition ${activeDifficulties.medium ? 'bg-indigo-600 border-indigo-500 text-white' : 'bg-slate-800 border-slate-700 text-slate-300 hover:bg-slate-700'}">
-                Medium
-              </button>
-              <button onclick="toggleDifficulty('hard')" class="py-2.5 px-5 rounded-lg border text-xs font-bold transition ${activeDifficulties.hard ? 'bg-indigo-600 border-indigo-500 text-white' : 'bg-slate-800 border-slate-700 text-slate-300 hover:bg-slate-700'}">
-                Hard
-              </button>
+              <button onclick="toggleDifficulty('easy')" class="py-2.5 px-5 rounded-lg border text-xs font-bold transition ${activeDifficulties.easy ? 'bg-indigo-600 border-indigo-500 text-white' : 'bg-slate-800 border-slate-700 text-slate-300 hover:bg-slate-700'}">Easy</button>
+              <button onclick="toggleDifficulty('medium')" class="py-2.5 px-5 rounded-lg border text-xs font-bold transition ${activeDifficulties.medium ? 'bg-indigo-600 border-indigo-500 text-white' : 'bg-slate-800 border-slate-700 text-slate-300 hover:bg-slate-700'}">Medium</button>
+              <button onclick="toggleDifficulty('hard')" class="py-2.5 px-5 rounded-lg border text-xs font-bold transition ${activeDifficulties.hard ? 'bg-indigo-600 border-indigo-500 text-white' : 'bg-slate-800 border-slate-700 text-slate-300 hover:bg-slate-700'}">Hard</button>
             </div>
           </div>
 
           <div class="bg-slate-900 p-4 rounded-xl border border-slate-700/60">
             <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider block mb-3">Question Status</span>
             <div class="grid grid-cols-4 gap-2 text-center">
-              <button onclick="setStatusFilter('all')" class="py-2.5 px-4 rounded-lg border text-xs font-bold transition ${activeStatusFilter === 'all' ? 'bg-indigo-600 border-indigo-500 text-white' : 'bg-slate-800 border-slate-700 text-slate-300 hover:bg-slate-700'}">
-                All
-              </button>
-              <button onclick="setStatusFilter('unsolved')" class="py-2.5 px-4 rounded-lg border text-xs font-bold transition ${activeStatusFilter === 'unsolved' ? 'bg-indigo-600 border-indigo-500 text-white' : 'bg-slate-800 border-slate-700 text-slate-300 hover:bg-slate-700'}">
-                Unsolved
-              </button>
-              <button onclick="setStatusFilter('solved')" class="py-2.5 px-4 rounded-lg border text-xs font-bold transition ${activeStatusFilter === 'solved' ? 'bg-indigo-600 border-indigo-500 text-white' : 'bg-slate-800 border-slate-700 text-slate-300 hover:bg-slate-700'}">
-                Solved
-              </button>
-              <button onclick="setStatusFilter('incorrect')" class="py-2.5 px-4 rounded-lg border text-xs font-bold transition ${activeStatusFilter === 'incorrect' ? 'bg-indigo-600 border-indigo-500 text-white' : 'bg-slate-800 border-slate-700 text-slate-300 hover:bg-slate-700'}">
-                Mistakes
-              </button>
+              <button onclick="setStatusFilter('all')" class="py-2.5 px-4 rounded-lg border text-xs font-bold transition ${activeStatusFilter === 'all' ? 'bg-indigo-600 border-indigo-500 text-white' : 'bg-slate-800 border-slate-700 text-slate-300 hover:bg-slate-700'}">All</button>
+              <button onclick="setStatusFilter('unsolved')" class="py-2.5 px-4 rounded-lg border text-xs font-bold transition ${activeStatusFilter === 'unsolved' ? 'bg-indigo-600 border-indigo-500 text-white' : 'bg-slate-800 border-slate-700 text-slate-300 hover:bg-slate-700'}">Unsolved</button>
+              <button onclick="setStatusFilter('solved')" class="py-2.5 px-4 rounded-lg border text-xs font-bold transition ${activeStatusFilter === 'solved' ? 'bg-indigo-600 border-indigo-500 text-white' : 'bg-slate-800 border-slate-700 text-slate-300 hover:bg-slate-700'}">Solved</button>
+              <button onclick="setStatusFilter('incorrect')" class="py-2.5 px-4 rounded-lg border text-xs font-bold transition ${activeStatusFilter === 'incorrect' ? 'bg-indigo-600 border-indigo-500 text-white' : 'bg-slate-800 border-slate-700 text-slate-300 hover:bg-slate-700'}">Mistakes</button>
             </div>
           </div>
-
         </div>
       </div>
 
       <div class="bg-slate-800 p-5 rounded-xl border border-slate-700/80 space-y-3">
         <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">Browse by Subject</h3>
-        
         ${renderCategoryItem("Algebra", bank)}
         ${renderCategoryItem("Advanced Math", bank)}
         ${renderCategoryItem("Problem-Solving and Data Analysis", bank)}
@@ -172,7 +149,6 @@ function toggleDifficulty(diff) {
 
 function filterByStatus(questions) {
   const attempts = JSON.parse(localStorage.getItem(getUserAttemptsKey()) || '[]');
-
   return questions.filter(q => {
     const qId = q.firestoreId || q.id;
     const qAttempts = attempts.filter(a => a.questionId === qId);
@@ -188,12 +164,10 @@ function filterByStatus(questions) {
 
 function renderCategoryItem(categoryName, bank) {
   let catQuestions = bank.filter(q => q.category === categoryName);
-
   const hasActiveDiffs = Object.values(activeDifficulties).some(v => v);
   if (hasActiveDiffs) {
     catQuestions = catQuestions.filter(q => activeDifficulties[q.difficulty]);
   }
-
   catQuestions = filterByStatus(catQuestions);
 
   const isDisabled = catQuestions.length === 0;
@@ -204,9 +178,7 @@ function renderCategoryItem(categoryName, bank) {
     <div class="bg-slate-900 p-4 rounded-xl border border-slate-700/60 flex items-center justify-between ${isDisabled ? 'opacity-40' : ''}">
       <div class="flex items-center gap-3.5">
         <div class="p-2 bg-slate-800 rounded-lg border border-slate-700 text-slate-400">
-          <svg class="w-5 h-5 stroke-current" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
-          </svg>
+          <svg class="w-5 h-5 stroke-current" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" /></svg>
         </div>
         <div>
           <h4 class="text-sm font-bold">${categoryName}</h4>
@@ -225,7 +197,6 @@ function renderCategoryItem(categoryName, bank) {
 
 function startSession(clickedCategory) {
   const bank = window.questions || window.questionBank || [];
-
   const checkedBoxes = document.querySelectorAll('.subject-checkbox:checked');
   let selectedCategories = Array.from(checkedBoxes).map(cb => cb.value);
 
@@ -239,14 +210,12 @@ function startSession(clickedCategory) {
   }
 
   let list = bank.filter(q => selectedCategories.includes(q.category));
-
   const hasActiveDiffs = Object.values(activeDifficulties).some(v => v);
   if (hasActiveDiffs) {
     list = list.filter(q => activeDifficulties[q.difficulty]);
   }
 
   list = filterByStatus(list);
-
   filteredQuestions = list;
 
   if (filteredQuestions.length === 0) {
@@ -260,8 +229,15 @@ function startSession(clickedCategory) {
 }
 
 // --- ОТРИСОВКА ВОПРОСА ---
-
 function renderActiveQuestion() {
+  const currentWrapper = document.getElementById('desmos-wrapper');
+  if (currentWrapper) {
+    if (currentWrapper.style.top) desmosState.top = currentWrapper.style.top;
+    if (currentWrapper.style.left) desmosState.left = currentWrapper.style.left;
+    if (currentWrapper.style.width) desmosState.width = currentWrapper.style.width;
+    if (currentWrapper.style.height) desmosState.height = currentWrapper.style.height;
+  }
+
   const container = document.getElementById('sec-practice');
   if (!container) return;
 
@@ -270,165 +246,136 @@ function renderActiveQuestion() {
   userInputValue = '';
   hasAttemptedCurrent = false;
 
-  // Картинка вопроса (с кликом для зума)
   const imageHTML = currentQuestion.image
-    ? `<div class="my-4 flex justify-center bg-slate-900 p-4 rounded-xl border border-slate-700/80">
-         <img src="${currentQuestion.image}" alt="Figure" onclick="openImageModal(this.src)" class="max-h-64 object-contain rounded-lg cursor-pointer hover:opacity-90 transition" title="Click to enlarge">
-       </div>`
-    : '';
+  ? `<div class="my-4 flex justify-center">
+       <img src="${currentQuestion.image}" alt="Figure" onclick="openImageModal(this.src)" class="max-h-52 w-auto object-contain cursor-pointer hover:opacity-95 transition" title="Click to enlarge">
+     </div>`
+  : '';
 
   const isInputType = Array.isArray(currentQuestion.options) && currentQuestion.options.length === 0;
 
-  let answerBlockHtml = '';
-
-  if (isInputType) {
-    answerBlockHtml = `
-      <div class="space-y-3 max-w-sm">
-        <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider">Your Answer</label>
-        <input type="text" id="student-answer-input" oninput="handleInputChange(this.value)" placeholder="e.g. 12 or 3/4" class="w-full bg-slate-900 border border-slate-700 text-white rounded-xl px-4 py-3 text-base focus:outline-none focus:border-indigo-500 font-mono transition">
-      </div>
-    `;
-  } else {
-    answerBlockHtml = `
-      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        ${currentQuestion.options.map((opt, idx) => `
-          <button onclick="selectOption(${idx})" id="opt-btn-${idx}" class="opt-btn bg-slate-900 hover:bg-slate-700/60 border border-slate-700/80 p-4 rounded-xl text-left text-sm font-semibold transition text-slate-300">
-            <span class="text-indigo-400 font-bold mr-2">${String.fromCharCode(65 + idx)}.</span> ${opt}
-          </button>
-        `).join('')}
-      </div>
-    `;
-  }
+  let answerBlockHtml = isInputType ? `
+    <div class="space-y-3 max-w-sm">
+      <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider">Your Answer</label>
+      <input type="text" id="student-answer-input" oninput="handleInputChange(this.value)" placeholder="e.g. 12 or 3/4" class="w-full bg-white border border-slate-900 text-slate-900 rounded-xl px-4 py-3 text-base focus:outline-none focus:ring-2 focus:ring-slate-900 font-mono transition">
+    </div>
+  ` : `
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+    ${currentQuestion.options.map((opt, idx) => `
+      <button onclick="selectOption(${idx})" id="opt-btn-${idx}" class="opt-btn bg-white hover:bg-slate-50 border border-slate-300 p-2.5 rounded-xl text-left text-xs font-semibold transition text-slate-800">
+        <span class="text-indigo-600 font-bold mr-1.5">${String.fromCharCode(65 + idx)}.</span> ${opt}
+      </button>
+    `).join('')}
+    </div>
+  `;
 
   container.innerHTML = `
-    <div id="practice-main-content" class="max-w-5xl mx-auto space-y-4 relative transition-transform duration-300 pb-28">
+    <!-- DESMOS CALCULATOR -->
+    <div id="desmos-wrapper" style="top: ${desmosState.top}; left: ${desmosState.left}; width: ${desmosState.width}; height: ${desmosState.height};" class="${isDesmosOpen ? '' : 'hidden'} fixed z-40 min-w-[320px] min-h-[380px] bg-slate-900 p-2 rounded-xl border border-slate-700 shadow-2xl flex flex-col resize overflow-auto">
+      <div id="desmos-header" class="flex justify-between items-center mb-1 px-2 py-1.5 bg-slate-800 rounded-lg select-none cursor-move shrink-0">
+        <span class="text-xs font-bold text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
+          <svg class="w-4 h-4 text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" /></svg>
+          Graphing Calculator
+        </span>
+        <button onclick="toggleDesmos()" class="text-slate-400 hover:text-white text-xs font-bold px-1.5 py-0.5 rounded hover:bg-slate-700 transition">✕ Close</button>
+      </div>
+      <div id="desmos-calculator-container" class="w-full flex-1 rounded-lg overflow-hidden border border-slate-800 min-h-0"></div>
+    </div>
+
+    <!-- MAIN WORKSPACE -->
+    <div id="practice-main-content" class="w-full space-y-3 pb-12 transition-all duration-300 ${isDesmosOpen ? 'ml-auto mr-2 max-w-xl' : 'mx-auto max-w-3xl'}">
       
-      <!-- ВЕРХНЯЯ ПАНЕЛЬ -->
-      <div class="flex items-center justify-between bg-slate-900 border border-slate-700/80 rounded-2xl px-5 py-3 shadow-md">
-        <div class="flex items-center gap-2 px-4 py-1.5 bg-slate-800 border border-slate-700 rounded-xl text-slate-300 font-mono text-sm">
-          <svg class="w-4 h-4 stroke-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-          </svg>
-          <span id="question-timer" class="font-bold text-slate-100">00:00</span>
-          <button type="button" id="timer-pause-btn" onclick="toggleTimerPause()" class="ml-1 text-slate-400 hover:text-white transition focus:outline-none" title="Pause/Resume">
-            <svg id="timer-pause-icon" class="w-4 h-4 stroke-current" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
+      <!-- TOP NAV WITH BLACK BORDER -->
+      <div class="flex items-center justify-between bg-white border border-slate-900 rounded-xl px-4 py-2 shadow-sm">
+        <div class="flex items-center gap-2 px-3 py-1 bg-slate-100 border border-slate-300 rounded-lg text-slate-700 font-mono text-xs">
+          <svg class="w-3.5 h-3.5 stroke-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+          <span id="question-timer" class="font-bold text-slate-800">00:00</span>
+          <button type="button" id="timer-pause-btn" onclick="toggleTimerPause()" class="ml-1 text-slate-500 hover:text-slate-800 transition focus:outline-none">
+            <svg id="timer-pause-icon" class="w-3.5 h-3.5 stroke-current" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
           </button>
         </div>
 
-        <div class="flex items-center gap-3">
-          <button onclick="toggleDesmos()" class="bg-indigo-600 hover:bg-indigo-500 text-white border border-indigo-500 text-xs font-semibold px-4 py-2 rounded-xl transition shadow-md flex items-center gap-1.5">
-            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" /></svg>
+        <div class="flex items-center gap-2">
+          <button onclick="toggleDesmos()" class="bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-semibold px-3 py-1.5 rounded-lg transition shadow flex items-center gap-1">
+            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" /></svg>
             Calculator
           </button>
-          <button onclick="renderPracticeDashboard()" class="text-xs font-bold text-slate-400 hover:text-white transition">
-            ✕ Exit
-          </button>
+          <button onclick="renderPracticeDashboard()" class="text-xs font-bold text-slate-500 hover:text-slate-800 transition px-2 py-1">✕ Exit</button>
         </div>
       </div>
 
-      <!-- КАРТОЧКА ВОПРОСА -->
-      <div class="bg-slate-800 p-8 rounded-2xl border border-slate-700/80 shadow-xl flex flex-col justify-center">
-        <p class="text-base sm:text-lg font-medium leading-relaxed">${currentQuestion.question}</p>
-        ${imageHTML}
+      <!-- IMAGE -->
+      ${imageHTML}
+
+      <!-- QUESTION BOX WITH BLACK BORDER -->
+      <div class="bg-white p-5 rounded-xl border border-slate-900 shadow-sm">
+        <p class="text-sm sm:text-base font-medium leading-relaxed text-slate-800">${currentQuestion.question}</p>
       </div>
 
-      <!-- БЛОК ОТВЕТА -->
-      <div class="bg-slate-800 p-8 rounded-2xl border border-slate-700/80 space-y-6 shadow-xl">
-        <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400">Answer Selection</h3>
-
+      <!-- ANSWER BOX WITH BLACK BORDER -->
+      <div class="bg-white p-5 rounded-xl border border-slate-900 space-y-3 shadow-sm">
+        <h3 class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Answer Selection</h3>
         ${answerBlockHtml}
-
-        <div id="feedback-msg" class="text-sm font-bold min-h-[1.25rem]"></div>
-
-        <div class="flex items-center justify-between pt-4 border-t border-slate-700/80">
-          <button onclick="checkAnswer()" id="submit-ans-btn" class="bg-indigo-600 hover:bg-indigo-500 text-white font-semibold px-8 py-3 rounded-xl transition disabled:opacity-40 disabled:cursor-not-allowed shadow-md" disabled>
+        <div id="feedback-msg" class="text-xs font-bold min-h-[1rem]"></div>
+        <div class="flex items-center justify-between pt-2 border-t border-slate-100">
+          <button onclick="checkAnswer()" id="submit-ans-btn" class="bg-emerald-500 hover:bg-emerald-600 text-white font-semibold px-5 py-2 rounded-lg text-xs transition disabled:opacity-40 shadow" disabled>
             Check Answer
           </button>
         </div>
       </div>
 
-      <!-- НИЖНЯЯ ПАНЕЛЬ НАВИГАЦИИ С ЦЕНТРАЛЬНЫМИ КНОПКАМИ -->
-      <div class="flex items-center justify-between bg-slate-900 border border-slate-700/80 rounded-2xl px-6 py-4 shadow-md relative">
-        <button onclick="navigateQuestion(-1)" ${currentQuestionIndex === 0 ? 'disabled' : ''} class="px-5 py-3 bg-slate-800 hover:bg-slate-700 disabled:opacity-30 disabled:pointer-events-none border border-slate-700 rounded-xl text-sm font-bold text-slate-200 transition shadow">
-          ← Previous
-        </button>
+      <!-- BOTTOM NAV WITH BLACK BORDER -->
+      <div class="flex items-center justify-between bg-white border border-slate-900 rounded-xl px-4 py-2 shadow-sm relative">
+        <button onclick="navigateQuestion(-1)" ${currentQuestionIndex === 0 ? 'disabled' : ''} class="px-3 py-1.5 bg-slate-50 hover:bg-slate-100 disabled:opacity-30 border border-slate-300 rounded-lg text-xs font-bold text-slate-700 transition">← Previous</button>
 
-        <div class="flex items-center gap-3">
-          <!-- Information -->
+        <div class="flex items-center gap-2">
           <div class="relative">
-            <button onclick="toggleInfoPopup()" class="px-5 py-3 bg-slate-800 hover:bg-slate-700 border border-slate-600 rounded-xl text-sm font-bold text-slate-200 transition shadow flex items-center gap-2">
-              ℹ Information
-            </button>
-            <div id="info-popup" class="hidden absolute bottom-full mb-3 left-1/2 -translate-x-1/2 w-64 bg-slate-900 border border-slate-700 p-4 rounded-xl shadow-2xl text-xs text-slate-300 z-30 space-y-1">
-              <div class="font-bold text-white text-sm">Question Details</div>
-              <div>Difficulty: <span class="text-indigo-400 uppercase font-bold">${currentQuestion.difficulty || 'Medium'}</span></div>
-              <div>Domain: <span class="text-slate-200">${currentQuestion.domain || 'Math'}</span></div>
+            <button onclick="toggleInfoPopup()" class="px-3 py-1.5 bg-slate-50 hover:bg-slate-100 border border-slate-300 rounded-lg text-xs font-bold text-slate-700 transition flex items-center gap-1">ℹ Info</button>
+            <div id="info-popup" class="hidden absolute bottom-full mb-2 left-1/2 -translate-x-1/2 w-56 bg-white border border-slate-900 p-3 rounded-xl shadow-xl text-xs text-slate-600 z-30 space-y-1">
+              <div class="font-bold text-slate-800 text-xs">Question Details</div>
+              <div>Difficulty: <span class="text-indigo-600 uppercase font-bold">${currentQuestion.difficulty || 'Medium'}</span></div>
+              <div>Domain: <span class="text-slate-800">${currentQuestion.domain || currentQuestion.category || 'Math'}</span></div>
+              ${currentQuestion.note ? `<div class="pt-1 border-t border-slate-200 mt-1 text-slate-700"><strong>Note:</strong> ${currentQuestion.note}</div>` : ''}
             </div>
           </div>
 
-          <!-- Explanation Button -->
-          <button onclick="toggleExplanationBox()" class="px-5 py-3 bg-slate-800 hover:bg-slate-700 border border-slate-600 rounded-xl text-sm font-bold text-slate-200 transition shadow flex items-center gap-2">
-            💡 Explanation
-          </button>
+          <button onclick="toggleExplanationBox()" class="px-3 py-1.5 bg-slate-50 hover:bg-slate-100 border border-slate-300 rounded-lg text-xs font-bold text-slate-700 transition flex items-center gap-1">💡 Explanation</button>
         </div>
 
-        <button onclick="navigateQuestion(1)" ${currentQuestionIndex === filteredQuestions.length - 1 ? 'disabled' : ''} class="px-5 py-3 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-30 disabled:pointer-events-none rounded-xl text-sm font-bold text-white transition shadow-md">
-          Next →
-        </button>
+        <button onclick="navigateQuestion(1)" ${currentQuestionIndex === filteredQuestions.length - 1 ? 'disabled' : ''} class="px-3 py-1.5 bg-emerald-500 hover:bg-emerald-600 disabled:opacity-30 rounded-lg text-xs font-bold text-white transition">Next →</button>
       </div>
-
     </div>
 
-   <!-- ВЫДВИЖНОЙ EXPLANATION ШТОРКА СНИЗУ -->
-    <div id="explanation-box" class="fixed inset-x-0 bottom-0 z-50 transform translate-y-full transition-transform duration-300 ease-out bg-slate-900 dark:bg-slate-950 border-t-2 border-indigo-500 shadow-2xl max-h-[85vh] flex flex-col rounded-t-3xl">
-      <div class="max-w-5xl w-full mx-auto p-8 flex flex-col h-full overflow-hidden">
-        <div class="flex items-center justify-between pb-6 border-b border-slate-700/50">
-          <div class="flex items-center gap-3">
-            <span class="p-3 bg-indigo-600/20 border border-indigo-500/30 rounded-2xl text-indigo-400 text-2xl">💡</span>
-            <div>
-              <h2 class="text-2xl sm:text-3xl font-extrabold text-slate-100 tracking-tight">Step-by-Step Explanation</h2>
-              <p class="text-xs text-slate-400 mt-1">Detailed breakdown, graphs, and conceptual notes for this question</p>
-            </div>
+    <!-- EXPLANATION DRAWER -->
+    <div id="explanation-box" class="fixed inset-x-0 bottom-0 z-50 transform translate-y-full transition-transform duration-300 ease-out bg-white border-t-2 border-indigo-500 shadow-2xl max-h-[80vh] flex flex-col rounded-t-2xl">
+      <div class="max-w-4xl w-full mx-auto p-6 flex flex-col h-full overflow-hidden">
+        <div class="flex items-center justify-between pb-4 border-b border-slate-200">
+          <div class="flex items-center gap-2">
+            <span class="p-2 bg-indigo-50 border border-indigo-200 rounded-xl text-indigo-600 text-xl">💡</span>
+            <div><h2 class="text-xl font-bold text-slate-800">Step-by-Step Explanation</h2></div>
           </div>
-          <button onclick="toggleExplanationBox()" class="px-5 py-2.5 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 rounded-xl text-sm font-bold transition shadow">
-            ✕ Close
-          </button>
+          <button onclick="toggleExplanationBox()" class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 border border-slate-300 text-slate-700 rounded-lg text-xs font-bold transition">✕ Close</button>
         </div>
 
-        <div class="py-6 overflow-y-auto space-y-6 text-base sm:text-lg leading-relaxed pr-2">
-          <div class="am-explanation-content bg-slate-800/90 text-slate-100 border border-slate-700 p-6 rounded-2xl shadow-inner">
+        <div class="py-4 overflow-y-auto flex-1 min-h-0 space-y-4 text-sm leading-relaxed pr-2">
+          <div class="am-explanation-content bg-slate-50 text-slate-900 border border-slate-200 p-4 rounded-xl shadow-inner break-words [word-break:break-word]">
             ${currentQuestion.explanation || 'No explanation available.'}
           </div>
-
+          
           ${currentQuestion.explanationImage ? `
-            <div class="flex justify-center bg-slate-800/90 p-6 rounded-2xl border border-slate-700">
-              <img src="${currentQuestion.explanationImage}" alt="Explanation figure" onclick="openImageModal(this.src)" class="max-h-96 object-contain rounded-xl shadow-lg cursor-pointer hover:opacity-90 transition" title="Click to enlarge">
+            <div class="flex justify-center bg-slate-50 p-4 rounded-xl border border-slate-200">
+              <img src="${currentQuestion.explanationImage}" alt="Explanation figure" onclick="openImageModal(this.src)" class="max-h-64 object-contain rounded-lg cursor-pointer hover:opacity-90 transition">
             </div>
           ` : ''}
         </div>
       </div>
     </div>
-
-    <!-- ОКНО DESMOS -->
-    <div id="desmos-wrapper" class="${isDesmosOpen ? '' : 'hidden'} fixed z-50 w-[580px] h-[520px] bg-slate-900 p-3 rounded-2xl border border-slate-700 shadow-2xl flex flex-col resize overflow-hidden" style="top: 80px; left: 40px;">
-      <div id="desmos-header" class="flex justify-between items-center mb-2 px-2 py-1 bg-slate-800 rounded-lg cursor-grab active:cursor-grabbing select-none">
-        <span class="text-xs font-bold text-slate-300 uppercase tracking-wider flex items-center gap-2 pointer-events-none">
-          <svg class="w-4 h-4 text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" /></svg>
-          Graphing Calculator
-        </span>
-        <button onclick="toggleDesmos()" class="text-slate-400 hover:text-white text-sm font-bold px-1.5 py-0.5 rounded hover:bg-slate-700">✕ Close</button>
-      </div>
-      <div id="desmos-calculator-container" class="w-full flex-1 rounded-xl overflow-hidden border border-slate-800 relative"></div>
-    </div>
   `;
 
   startQuestionTimer();
+  desmosCalculator = null;
 
   if (isDesmosOpen) {
-    const mainContent = document.getElementById('practice-main-content');
-    if (mainContent) mainContent.style.transform = 'translateX(280px)';
     setTimeout(() => {
       initDesmos();
       makeDesmosDraggable();
@@ -444,11 +391,7 @@ function toggleInfoPopup() {
 function toggleExplanationBox() {
   const box = document.getElementById('explanation-box');
   if (!box) return;
-  if (box.classList.contains('translate-y-full')) {
-    box.classList.remove('translate-y-full');
-  } else {
-    box.classList.add('translate-y-full');
-  }
+  box.classList.toggle('translate-y-full');
   const infoPopup = document.getElementById('info-popup');
   if (infoPopup) infoPopup.classList.add('hidden');
 }
@@ -466,45 +409,51 @@ function toggleDesmos() {
   const wrapper = document.getElementById('desmos-wrapper');
   const mainContent = document.getElementById('practice-main-content');
 
-  if (wrapper) {
-    if (isDesmosOpen) {
-      wrapper.classList.remove('hidden');
-      if (mainContent) {
-        mainContent.style.transform = 'translateX(280px)';
-      }
+  if (!wrapper || !mainContent) return;
 
-      setTimeout(() => {
-        initDesmos();
-        makeDesmosDraggable();
-      }, 50);
-    } else {
-      wrapper.classList.add('hidden');
-      if (mainContent) {
-        mainContent.style.transform = 'translateX(0)';
-      }
-    }
+  if (isDesmosOpen) {
+    wrapper.classList.remove('hidden');
+    mainContent.classList.remove('mx-auto', 'max-w-3xl');
+    mainContent.classList.add('ml-auto', 'mr-2', 'max-w-xl');
+
+    setTimeout(() => {
+      initDesmos();
+      makeDesmosDraggable();
+    }, 100);
+  } else {
+    wrapper.classList.add('hidden');
+    mainContent.classList.remove('ml-auto', 'mr-2', 'max-w-xl');
+    mainContent.classList.add('mx-auto', 'max-w-3xl');
   }
 }
 
 function initDesmos() {
-  const elt = document.getElementById('desmos-calculator-container');
-  if (!elt) return;
+  const container = document.getElementById('desmos-calculator-container');
+  if (!container || !window.Desmos) return;
 
-  if (!desmosCalculator && window.Desmos) {
-    desmosCalculator = Desmos.GraphingCalculator(elt, {
+  // Если калькулятор уже создан в этом контейнере — просто делаем resize
+  if (!desmosCalculator) {
+    container.innerHTML = ''; // Очищаем контейнер перед инициализацией
+    desmosCalculator = Desmos.GraphingCalculator(container, {
+      keypad: false,
       expressions: true,
-      settingsMenu: true,
-      zoomButtons: true
+      settingsMenu: false
     });
+
+    const wrapper = document.getElementById('desmos-wrapper');
+    if (wrapper && window.ResizeObserver) {
+      const resizeObserver = new ResizeObserver(() => {
+        if (desmosCalculator) desmosCalculator.resize();
+      });
+      resizeObserver.observe(wrapper);
+    }
   }
 
-  if (desmosCalculator) {
-    desmosCalculator.resize();
-    setTimeout(() => {
-      if (desmosCalculator) desmosCalculator.resize();
-    }, 100);
-  }
+  setTimeout(() => {
+    if (desmosCalculator) desmosCalculator.resize();
+  }, 100);
 }
+
 
 function makeDesmosDraggable() {
   const wrapper = document.getElementById('desmos-wrapper');
@@ -546,9 +495,11 @@ function selectOption(index) {
   selectedOption = index;
   document.querySelectorAll('.opt-btn').forEach((btn, idx) => {
     if (idx === index) {
-      btn.className = "opt-btn bg-indigo-600/20 border-2 border-indigo-500 p-4 rounded-xl text-left text-sm font-semibold transition text-white shadow-md";
+      // Выбранный вариант: просто темная рамка + легкий серый фон (без зеленых/красных цветов)
+      btn.className = "opt-btn border-2 border-slate-900 bg-slate-100 text-slate-900 p-2.5 rounded-xl text-left text-xs font-bold transition shadow-sm";
     } else {
-      btn.className = "opt-btn bg-slate-900 hover:bg-slate-700/60 border border-slate-700/80 p-4 rounded-xl text-left text-sm font-semibold transition text-slate-300";
+      // Неввыбранные варианты
+      btn.className = "opt-btn border border-slate-300 bg-white hover:bg-slate-50 text-slate-800 p-2.5 rounded-xl text-left text-xs font-semibold transition";
     }
   });
 
@@ -556,15 +507,6 @@ function selectOption(index) {
   if (submitBtn) submitBtn.disabled = false;
 }
 
-function handleInputChange(val) {
-  userInputValue = val.trim();
-  const submitBtn = document.getElementById('submit-ans-btn');
-  if (submitBtn) {
-    submitBtn.disabled = userInputValue.length === 0;
-  }
-}
-
-// Запись попытки с ГАРАНТИРОВАННОЙ записью в LocalStorage
 function recordAttempt(question, isCorrect, timeSpent) {
   if (!question) return;
 
@@ -597,6 +539,30 @@ function recordAttempt(question, isCorrect, timeSpent) {
   }
 }
 
+function parseNumericAnswer(raw) {
+  if (raw === null || raw === undefined) return null;
+  let str = String(raw).trim().replace(/\s+/g, '');
+  if (str === '') return null;
+
+  if (str.endsWith('%')) {
+    const num = parseFloat(str.slice(0, -1));
+    return isNaN(num) ? null : num / 100;
+  }
+
+  const fractionMatch = str.match(/^-?\d+(\.\d+)?\/-?\d+(\.\d+)?$/);
+  if (fractionMatch) {
+    const [numStr, denStr] = str.split('/');
+    const num = parseFloat(numStr);
+    const den = parseFloat(denStr);
+    if (isNaN(num) || isNaN(den) || den === 0) return null;
+    return num / den;
+  }
+
+  if (!/^-?\d*\.?\d+$/.test(str)) return null;
+  const num = parseFloat(str);
+  return isNaN(num) ? null : num;
+}
+
 function checkAnswer() {
   const currentQuestion = filteredQuestions[currentQuestionIndex];
   const isInputType = Array.isArray(currentQuestion.options) && currentQuestion.options.length === 0;
@@ -610,10 +576,17 @@ function checkAnswer() {
   let isCorrect = false;
 
   if (isInputType) {
-    const normalizedInput = userInputValue.toLowerCase().replace(/\s+/g, '');
     const rawAnswer = currentQuestion.correctAnswer ?? currentQuestion.correct_answer ?? currentQuestion.correctIndex ?? '';
-    const expected = String(rawAnswer).toLowerCase().replace(/\s+/g, '');
-    isCorrect = (normalizedInput === expected);
+    const expectedNum = parseNumericAnswer(rawAnswer);
+    const inputNum = parseNumericAnswer(userInputValue);
+
+    if (expectedNum !== null && inputNum !== null) {
+      isCorrect = Math.abs(expectedNum - inputNum) < 1e-9;
+    } else {
+      const normalizedInput = userInputValue.toLowerCase().replace(/\s+/g, '');
+      const expected = String(rawAnswer).toLowerCase().replace(/\s+/g, '');
+      isCorrect = (normalizedInput === expected);
+    }
   } else {
     isCorrect = (selectedOption === currentQuestion.correctIndex);
   }
@@ -624,26 +597,26 @@ function checkAnswer() {
     hasAttemptedCurrent = true;
   }
 
+  // Смена цвета ПОСЛЕ проверки
   if (isCorrect) {
-    feedback.className = "text-emerald-400 font-bold text-sm";
+    feedback.className = "text-emerald-600 font-bold text-sm";
     feedback.innerText = "✓ Correct!";
 
     if (!isInputType && selectedOption !== null) {
       const selectedBtn = document.getElementById(`opt-btn-${selectedOption}`);
-      if (selectedBtn) selectedBtn.className = "opt-btn bg-emerald-950/60 border-2 border-emerald-500 p-4 rounded-xl text-left text-sm font-semibold transition text-emerald-200 shadow-md";
+      if (selectedBtn) selectedBtn.className = "opt-btn bg-emerald-100 border-2 border-emerald-600 text-emerald-950 p-2.5 rounded-xl text-left text-xs font-bold transition shadow-sm";
     }
   } else {
-    feedback.className = "text-rose-400 font-bold text-sm";
+    feedback.className = "text-rose-600 font-bold text-sm";
     feedback.innerText = "✕ Incorrect. Try again or check the Explanation.";
 
     if (!isInputType && selectedOption !== null) {
       const selectedBtn = document.getElementById(`opt-btn-${selectedOption}`);
-      if (selectedBtn) selectedBtn.className = "opt-btn bg-rose-950/60 border-2 border-rose-500 p-4 rounded-xl text-left text-sm font-semibold transition text-rose-200 shadow-md";
+      if (selectedBtn) selectedBtn.className = "opt-btn bg-rose-100 border-2 border-rose-600 text-rose-950 p-2.5 rounded-xl text-left text-xs font-bold transition shadow-sm";
     }
   }
 }
 
-// --- МОДАЛКА ДЛЯ ПРОСМОТРА КАРТИНОК (LIGHTBOX) ---
 function openImageModal(src) {
   let modal = document.getElementById('image-lightbox-modal');
   if (!modal) {
@@ -652,15 +625,11 @@ function openImageModal(src) {
     modal.className = 'fixed inset-0 z-[100] bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 transition-opacity duration-200 opacity-0 pointer-events-none';
     modal.innerHTML = `
       <div class="relative max-w-5xl max-h-[90vh] flex flex-col items-center">
-        <button onclick="closeImageModal()" class="absolute -top-12 right-0 text-white hover:text-slate-300 text-sm font-bold bg-slate-800/90 px-3 py-1.5 rounded-lg border border-slate-600 transition shadow">
-          ✕ Close
-        </button>
+        <button onclick="closeImageModal()" class="absolute -top-12 right-0 text-white hover:text-slate-300 text-sm font-bold bg-slate-800/90 px-3 py-1.5 rounded-lg border border-slate-600 transition shadow">✕ Close</button>
         <img id="lightbox-img" src="" alt="Enlarged view" class="max-w-full max-h-[85vh] object-contain rounded-xl border border-slate-700 shadow-2xl">
       </div>
     `;
-    modal.onclick = (e) => {
-      if (e.target === modal) closeImageModal();
-    };
+    modal.onclick = (e) => { if (e.target === modal) closeImageModal(); };
     document.body.appendChild(modal);
   }
 
@@ -676,7 +645,6 @@ function closeImageModal() {
   }
 }
 
-// Экспорт
 window.generateQuestion = renderPracticeDashboard;
 window.startSession = startSession;
 window.toggleDifficulty = toggleDifficulty;
