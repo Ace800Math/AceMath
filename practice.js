@@ -273,31 +273,6 @@ function startSession(clickedCategory) {
 }
 
 // --- ОТРИСОВКА ВОПРОСА ---
-
-// ДОБАВЛЕНО: вопросы/варианты/объяснения хранятся как обычный текст
-// ("g(x) = a * b^(x/n)"), поэтому раньше на экране так и показывались
-// голая звёздочка вместо знака умножения и "^" вместо настоящей степени.
-// Эта функция приводит текст к нормальному виду перед вставкой в DOM:
-// "*" -> "×", а всё после "^" (либо в скобках, либо одно "слово" — число/
-// буква/дробь без пробелов) поднимается над строкой через <sup>.
-function formatMathText(str) {
-  if (!str) return '';
-  let out = String(str);
-
-  // Умножение: "a * b" -> "a × b"
-  out = out.replace(/\*/g, '×');
-
-  // Степень в скобках: b^(x/n), y^(2n+1) — сначала скобочный вариант,
-  // чтобы не задеть его следующим (более простым) правилом
-  out = out.replace(/\^\(([^()]*)\)/g, (_, expr) => `<sup>${expr}</sup>`);
-
-  // Степень без скобок: x^2, b^-1, y^3n
-  out = out.replace(/\^([+-]?[A-Za-z0-9]+)/g, (_, expr) => `<sup>${expr}</sup>`);
-
-  return out;
-}
-window.formatMathText = formatMathText;
-
 function renderActiveQuestion() {
   const currentWrapper = document.getElementById('desmos-wrapper');
   if (currentWrapper) {
@@ -332,7 +307,7 @@ function renderActiveQuestion() {
     <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
     ${currentQuestion.options.map((opt, idx) => `
       <button onclick="selectOption(${idx})" id="opt-btn-${idx}" class="opt-btn bg-white hover:bg-slate-50 border border-slate-300 p-2.5 rounded-xl text-left text-xs font-semibold transition text-slate-800">
-        <span class="text-indigo-600 font-bold mr-1.5">${String.fromCharCode(65 + idx)}.</span> ${formatMathText(opt)}
+        <span class="text-indigo-600 font-bold mr-1.5">${String.fromCharCode(65 + idx)}.</span> ${window.renderMath ? window.renderMath(opt) : opt}
       </button>
     `).join('')}
     </div>
@@ -378,7 +353,7 @@ function renderActiveQuestion() {
 
       <!-- QUESTION BOX WITH BLACK BORDER -->
       <div class="bg-white p-5 rounded-xl border border-slate-900 shadow-sm">
-        <p class="text-sm sm:text-base font-medium leading-relaxed text-slate-800">${formatMathText(currentQuestion.question)}</p>
+        <p class="text-sm sm:text-base font-medium leading-relaxed text-slate-800">${window.renderMath ? window.renderMath(currentQuestion.question) : currentQuestion.question}</p>
       </div>
 
       <!-- ANSWER BOX WITH BLACK BORDER -->
@@ -428,7 +403,7 @@ function renderActiveQuestion() {
 
         <div class="py-4 overflow-y-auto flex-1 min-h-0 space-y-4 text-sm leading-relaxed pr-2">
           <div class="am-explanation-content bg-slate-50 text-slate-900 border border-slate-200 p-4 rounded-xl shadow-inner break-words [word-break:break-word]">
-            ${formatMathText(currentQuestion.explanation) || 'No explanation available.'}
+            ${currentQuestion.explanation ? (window.renderMath ? window.renderMath(currentQuestion.explanation) : currentQuestion.explanation) : 'No explanation available.'}
           </div>
           
           ${currentQuestion.explanationImage ? `

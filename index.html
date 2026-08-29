@@ -223,35 +223,12 @@
             <button onclick="switchTab('practice')" class="bg-indigo-600 hover:bg-indigo-500 text-white font-bold px-8 py-3 rounded-xl transition text-base shadow-md">Start Practice Session</button>
           </div>
 
-          <!-- SECTION: COMMUNITY & HELP -->
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <!-- Community Channel -->
-            <div class="bg-slate-800 p-8 rounded-xl border border-slate-700 shadow-md flex flex-col justify-between">
-              <div>
-                <h3 class="text-2xl font-extrabold text-white mb-2">Community</h3>
-                <p class="text-base text-slate-300 mb-6 font-medium">Official updates and SAT practice strategies.</p>
-              </div>
-              <div>
-                <a href="https://t.me/acemath_official" target="_blank" class="inline-flex items-center gap-2 bg-slate-700 hover:bg-slate-600 text-white font-bold px-8 py-3 rounded-xl transition text-base shadow-md">
-                  Telegram Channel
-                </a>
-              </div>
-            </div>
-
-            <!-- Need Desmos Solution? -->
-            <div class="bg-slate-800 p-8 rounded-xl border border-slate-700 shadow-md flex flex-col justify-between">
-              <div>
-                <h3 class="text-2xl font-extrabold text-white mb-2">Stuck on a Question?</h3>
-                <p class="text-base text-slate-300 mb-6 font-medium">
-                  Have a compilation of questions or can't find the answer? Send it over and get a custom Desmos solution!
-                </p>
-              </div>
-              <div>
-                <a href="https://t.me/AceMath800" target="_blank" class="inline-flex items-center gap-2 bg-indigo-600 hover:bg-indigo-500 text-white font-bold px-8 py-3 rounded-xl transition text-base shadow-md">
-                  Request Solution
-                </a>
-              </div>
-            </div>
+          <div class="bg-slate-800 p-8 rounded-xl border border-slate-700 shadow-md">
+            <h3 class="text-2xl font-extrabold text-white mb-2">Community</h3>
+            <p class="text-base text-slate-300 mb-6 font-medium">Official updates and SAT practice strategies.</p>
+            <a href="https://t.me/acemath_official" target="_blank" class="inline-flex items-center gap-2 bg-slate-700 hover:bg-slate-600 text-white font-bold px-8 py-3 rounded-xl transition text-base shadow-md">
+              Telegram Channel
+            </a>
           </div>
         </div>
 
@@ -441,6 +418,7 @@
 
   <!-- JS Скрипты приложения -->
   <script src="questions.js"></script>
+  <script src="mathrender.js"></script>
   <script src="firebase.js"></script>
   <script src="auth.js"></script>
   <script src="practice.js"></script>

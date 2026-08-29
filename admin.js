@@ -9,6 +9,27 @@ const CATEGORIES = [
   "Geometry and Trigonometry"
 ];
 
+// Панель кнопок для вставки математической разметки в конкретное поле
+// (textarea или input) по id — вставляет шаблон в позицию курсора через
+// window.insertMathToken из mathrender.js.
+function renderMathToolbar(fieldId) {
+  const buttons = [
+    { label: '√', title: 'Корень: sqrt(...)', before: 'sqrt(', after: ')' },
+    { label: 'a/b', title: 'Дробь: frac(числитель,знаменатель)', before: 'frac(', after: ',)' },
+    { label: 'x²', title: 'Степень: сразу после ^, например 6^6', before: '^', after: '' },
+    { label: '×', title: 'Умножение', before: '*', after: '' },
+    { label: '°', title: 'Градус', before: '°', after: '' }
+  ];
+
+  const btnsHtml = buttons.map(b => `
+    <button type="button" title="${b.title}"
+      onclick="window.insertMathToken('${fieldId}', '${b.before}', '${b.after}')"
+      class="bg-slate-700 hover:bg-slate-600 text-slate-200 text-xs font-bold w-8 h-7 rounded-lg transition">${b.label}</button>
+  `).join('');
+
+  return `<div class="flex items-center gap-1.5 flex-wrap">${btnsHtml}</div>`;
+}
+
 async function renderAdminDashboard() {
   const container = document.getElementById('sec-admin');
   if (!container) return;
@@ -97,6 +118,7 @@ async function renderAdminDashboard() {
         <!-- Question text + optional image -->
         <div class="bg-slate-800 p-5 rounded-xl border border-slate-700 space-y-3">
           <label class="block text-xs font-semibold uppercase text-slate-400">Question Text</label>
+          ${renderMathToolbar('admin-question-text')}
           <textarea id="admin-question-text" required rows="3" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 text-sm focus:outline-none focus:border-indigo-500" placeholder="e.g. If 3x + 7 = 22, what is the value of 6x - 4?"></textarea>
 
           <label class="block text-xs font-semibold uppercase text-slate-400">Question Image URL (optional)</label>
@@ -112,7 +134,10 @@ async function renderAdminDashboard() {
               <div class="flex items-center gap-3">
                 <input type="radio" name="admin-correct" value="${i}" ${i === 0 ? 'checked' : ''} class="w-4 h-4 text-indigo-600 bg-slate-900 border-slate-700 focus:ring-0 cursor-pointer">
                 <span class="text-indigo-400 font-bold text-sm w-5">${String.fromCharCode(65 + i)}.</span>
-                <input type="text" id="admin-option-${i}" class="flex-1 bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-sm focus:outline-none focus:border-indigo-500" placeholder="Option ${String.fromCharCode(65 + i)}">
+                <div class="flex-1 space-y-1.5">
+                  <input type="text" id="admin-option-${i}" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-sm focus:outline-none focus:border-indigo-500" placeholder="Option ${String.fromCharCode(65 + i)}">
+                  ${renderMathToolbar('admin-option-' + i)}
+                </div>
               </div>
             `).join('')}
           </div>
@@ -128,6 +153,7 @@ async function renderAdminDashboard() {
         <!-- Explanation + optional image -->
         <div class="bg-slate-800 p-5 rounded-xl border border-slate-700 space-y-3">
           <label class="block text-xs font-semibold uppercase text-slate-400">Explanation</label>
+          ${renderMathToolbar('admin-explanation-text')}
           <textarea id="admin-explanation-text" required rows="3" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 text-sm focus:outline-none focus:border-indigo-500" placeholder="Walk through the solution step by step..."></textarea>
 
           <label class="block text-xs font-semibold uppercase text-slate-400">Explanation Image URL (optional)</label>
