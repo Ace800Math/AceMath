@@ -112,6 +112,19 @@ function renderProgressDashboard() {
     `;
   });
 
+  // Отдельный форматтер именно для таблицы "Average Time Per Question":
+  // до 60 сек — просто секунды, после — минуты + секунды (напр. "1 min 3 sec").
+  // Остальные карточки (Today/Week/Month/стрик) как были — formatTime не трогаем.
+  const formatAvgTime = (secs) => {
+    const rounded = Math.round(secs || 0);
+    if (rounded <= 0) return '0 sec';
+    if (rounded < 60) return `${rounded} sec`;
+
+    const mins = Math.floor(rounded / 60);
+    const remSecs = rounded % 60;
+    return remSecs > 0 ? `${mins} min ${remSecs} sec` : `${mins} min`;
+  };
+
   // 5. Сборка статистических таблиц
   const categoriesList = ['Algebra', 'Advanced Math', 'Problem-Solving and Data Analysis', 'Geometry and Trigonometry'];
   const difficulties = ['easy', 'medium', 'hard'];
@@ -145,7 +158,7 @@ function renderProgressDashboard() {
       const data = statsMap[cat][diff];
       if (data.total > 0) {
         const avgTime = Math.round(data.timeSum / data.total);
-        timeCells += `<td class="py-3 px-4 text-slate-200 font-medium">${formatTime(avgTime)}</td>`;
+        timeCells += `<td class="py-3 px-4 text-slate-200 font-medium">${formatAvgTime(avgTime)}</td>`;
 
         const acc = Math.round((data.correct / data.total) * 100);
         accCells += `<td class="py-3 px-4"><span class="px-2.5 py-1 rounded text-xs font-semibold ${acc >= 80 ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : acc >= 50 ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20' : 'bg-rose-500/10 text-rose-400 border border-rose-500/20'}">${acc}%</span></td>`;
@@ -238,7 +251,7 @@ function renderProgressDashboard() {
       </div>
 
       <div class="bg-slate-800 p-5 rounded-xl border border-slate-700/80 space-y-3">
-        <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider">Average Time Per Question (Minutes)</h3>
+        <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider">Average Time Per Question (Min & Sec)</h3>
         <div class="overflow-x-auto">
           <table class="w-full text-left text-xs">
             <thead>

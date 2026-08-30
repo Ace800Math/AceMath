@@ -290,6 +290,19 @@ function renderActiveQuestion() {
   userInputValue = '';
   hasAttemptedCurrent = false;
 
+  // Номер вопроса в общем банке — та же нумерация, что видна в
+  // Admin → Manage Questions (#1, #2, ... по порядку создания).
+  const bankForNumbering = window.questions || window.questionBank || [];
+  let bankNumber = null;
+  if (currentQuestion.firestoreId) {
+    const idxById = bankForNumbering.findIndex(q => q.firestoreId === currentQuestion.firestoreId);
+    if (idxById !== -1) bankNumber = idxById + 1;
+  }
+  if (bankNumber === null) {
+    const idxByRef = bankForNumbering.indexOf(currentQuestion);
+    bankNumber = idxByRef !== -1 ? idxByRef + 1 : null;
+  }
+
   const imageHTML = currentQuestion.image
   ? `<div class="my-4 flex justify-center">
        <img src="${currentQuestion.image}" alt="Figure" onclick="openImageModal(this.src)" class="max-h-52 w-auto object-contain cursor-pointer hover:opacity-95 transition" title="Click to enlarge">
@@ -377,6 +390,7 @@ function renderActiveQuestion() {
             <button onclick="toggleInfoPopup()" class="px-3 py-1.5 bg-slate-50 hover:bg-slate-100 border border-slate-300 rounded-lg text-xs font-bold text-slate-700 transition flex items-center gap-1">ℹ Info</button>
             <div id="info-popup" class="hidden absolute bottom-full mb-2 left-1/2 -translate-x-1/2 w-56 bg-white border border-slate-900 p-3 rounded-xl shadow-xl text-xs text-slate-600 z-30 space-y-1">
               <div class="font-bold text-slate-800 text-xs">Question Details</div>
+              <div>Question #: <span class="text-slate-800 font-bold">${bankNumber !== null ? bankNumber : '—'}</span></div>
               <div>Difficulty: <span class="text-indigo-600 uppercase font-bold">${currentQuestion.difficulty || 'Medium'}</span></div>
               <div>Domain: <span class="text-slate-800">${currentQuestion.domain || currentQuestion.category || 'Math'}</span></div>
               ${currentQuestion.note ? `<div class="pt-1 border-t border-slate-200 mt-1 text-slate-700"><strong>Note:</strong> ${currentQuestion.note}</div>` : ''}
