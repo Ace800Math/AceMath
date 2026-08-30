@@ -21,9 +21,11 @@
       .replace(/"/g, '&quot;');
   }
 
-  // Базовые замены (степень, умножение, градус) — применяются к обычному
-  // тексту, который не попал внутрь sqrt(...)/frac(...,...).
+  // Базовые замены (степень, умножение, градус, число пи) — применяются к
+  // обычному тексту, который не попал внутрь sqrt(...)/frac(...,...)/root(...,...).
   function applyBasics(s) {
+    // число пи: отдельное слово "pi" (не часть другого слова вроде "opinion")
+    s = s.replace(/\bpi\b/g, '<span class="am-pi">&pi;</span>');
     // степень с фигурными скобками: x^{16}
     s = s.replace(/\^\{([^{}]+)\}/g, '<sup class="am-sup">$1</sup>');
     // степень без скобок: x^2 (только один символ/цифра сразу после ^)
@@ -64,8 +66,21 @@
     return null;
   }
 
-  // Рекурсивно обрабатывает фрагмент текста: ищет sqrt(...)/frac(...,...),
-  // а всё, что между ними — обычный текст — прогоняет через applyBasics.
+  // Собирает разметку корня: indexHtml — маленькая цифра степени корня
+  // (null для обычного квадратного sqrt), contentRaw — необработанное
+  // подкоренное выражение (будет прогнано через processSegment рекурсивно).
+  function buildRadical(indexHtml, contentRaw) {
+    const indexSpan = indexHtml ? '<span class="am-root-index">' + indexHtml + '</span>' : '';
+    return '<span class="am-sqrt">' + indexSpan +
+      '<span class="am-sqrt-tick"><svg viewBox="0 0 20 60" preserveAspectRatio="none">' +
+      '<path d="M1,32 L7,58 L18,2" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>' +
+      '</svg></span>' +
+      '<span class="am-sqrt-content">' + processSegment(contentRaw) + '</span></span>';
+  }
+
+  // Рекурсивно обрабатывает фрагмент текста: ищет sqrt(...)/cbrt(...)/
+  // root(...,...)/frac(...,...), а всё, что между ними — обычный текст —
+  // прогоняет через applyBasics.
   function processSegment(s) {
     let result = '';
     let i = 0;
@@ -73,9 +88,11 @@
     while (i < s.length) {
       const isSqrt = s.startsWith('sqrt(', i);
       const isFrac = s.startsWith('frac(', i);
+      const isCbrt = s.startsWith('cbrt(', i);
+      const isRoot = s.startsWith('root(', i);
 
-      if (isSqrt || isFrac) {
-        const openIdx = i + 4; // индекс символа '(' сразу после "sqrt"/"frac"
+      if (isSqrt || isFrac || isCbrt || isRoot) {
+        const openIdx = i + 4; // "sqrt"/"frac"/"cbrt"/"root" — все 4 буквы, индекс совпадает
         const closeIdx = findMatchingParen(s, openIdx);
 
         if (closeIdx === -1) {
@@ -88,11 +105,19 @@
         const inner = s.slice(openIdx + 1, closeIdx);
 
         if (isSqrt) {
-          result += '<span class="am-sqrt"><span class="am-sqrt-tick"><svg viewBox="0 0 20 60" preserveAspectRatio="none">' +
-            '<path d="M1,32 L7,58 L18,2" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>' +
-            '</svg></span>' +
-            '<span class="am-sqrt-content">' + processSegment(inner) + '</span></span>';
+          result += buildRadical(null, inner);
+        } else if (isCbrt) {
+          result += buildRadical('3', inner);
+        } else if (isRoot) {
+          const parts = splitTopLevelComma(inner);
+          if (!parts) {
+            // нет запятой верхнего уровня — не похоже на "root(степень,выражение)"
+            result += 'root(' + processSegment(inner) + ')';
+          } else {
+            result += buildRadical(processSegment(parts[0]), parts[1]);
+          }
         } else {
+          // frac
           const parts = splitTopLevelComma(inner);
           if (!parts) {
             // нет запятой верхнего уровня — не похоже на корректную дробь,
@@ -109,13 +134,14 @@
         continue;
       }
 
-      // ищем следующее вхождение sqrt(/frac( от текущей позиции
-      const nextSqrt = s.indexOf('sqrt(', i);
-      const nextFrac = s.indexOf('frac(', i);
-      let next;
-      if (nextSqrt === -1) next = nextFrac;
-      else if (nextFrac === -1) next = nextSqrt;
-      else next = Math.min(nextSqrt, nextFrac);
+      // ищем следующее вхождение sqrt(/frac(/cbrt(/root( от текущей позиции
+      const candidates = [
+        s.indexOf('sqrt(', i),
+        s.indexOf('frac(', i),
+        s.indexOf('cbrt(', i),
+        s.indexOf('root(', i)
+      ].filter(idx => idx !== -1);
+      const next = candidates.length ? Math.min(...candidates) : -1;
 
       if (next === -1) {
         result += applyBasics(s.slice(i));
@@ -164,6 +190,8 @@
 
    sqrt(16)          ->  √16                 (корень; скобки внутри — можно)
    sqrt(x+(1))       ->  √(x+(1))            (вложенные скобки — тоже можно)
+   cbrt(8)           ->  кубический корень из 8 (маленькая тройка слева сверху)
+   root(4,16)        ->  корень 4-й степени из 16 (первое число — степень корня)
    frac(1,2)         ->  дробь 1 над 2 с чертой
    frac(sqrt(4),2)   ->  дробь, где сверху корень
    sqrt(frac(1,2))   ->  корень из дроби
@@ -171,4 +199,5 @@
    x^{16}            ->  степень из нескольких символов — в фигурных скобках
    *                 ->  ×  (знак умножения)
    °                 ->  маленький жирный градус сверху (можно печатать как обычно)
+   pi                ->  π  (отдельное слово "pi", не часть другого слова)
    ========================================================================== */

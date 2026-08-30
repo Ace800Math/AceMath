@@ -15,16 +15,19 @@ const CATEGORIES = [
 function renderMathToolbar(fieldId) {
   const buttons = [
     { label: '√', title: 'Корень: sqrt(...)', before: 'sqrt(', after: ')' },
+    { label: '∛', title: 'Кубический корень: cbrt(...)', before: 'cbrt(', after: ')' },
+    { label: 'ⁿ√', title: 'Корень n-й степени: root(степень,выражение)', before: 'root(', after: ',)' },
     { label: 'a/b', title: 'Дробь: frac(числитель,знаменатель)', before: 'frac(', after: ',)' },
     { label: 'x²', title: 'Степень: сразу после ^, например 6^6', before: '^', after: '' },
     { label: '×', title: 'Умножение', before: '*', after: '' },
-    { label: '°', title: 'Градус', before: '°', after: '' }
+    { label: '°', title: 'Градус', before: '°', after: '' },
+    { label: 'π', title: 'Число пи', before: 'pi', after: '' }
   ];
 
   const btnsHtml = buttons.map(b => `
     <button type="button" title="${b.title}"
       onclick="window.insertMathToken('${fieldId}', '${b.before}', '${b.after}')"
-      class="bg-slate-700 hover:bg-slate-600 text-slate-200 text-xs font-bold w-8 h-7 rounded-lg transition">${b.label}</button>
+      class="bg-slate-700 hover:bg-slate-600 text-slate-200 text-xs font-bold min-w-[2rem] h-7 px-1.5 rounded-lg transition">${b.label}</button>
   `).join('');
 
   return `<div class="flex items-center gap-1.5 flex-wrap">${btnsHtml}</div>`;

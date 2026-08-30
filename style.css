@@ -536,3 +536,17 @@ body:not(.light-theme) button[class*="emerald"]:not(#desmos-calculator-container
 .am-times {
   font-weight: 700;
 }
+.am-pi {
+  font-weight: 700;
+  font-style: italic;
+}
+
+/* Маленькая цифра степени корня (cbrt/root) — сидит слева-сверху от галочки */
+.am-root-index {
+  align-self: flex-start;
+  font-size: 0.55em;
+  font-weight: 800;
+  line-height: 1;
+  margin-right: -0.15em;
+  margin-top: -0.1em;
+}
