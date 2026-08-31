@@ -86,7 +86,7 @@ async function renderAdminDashboard() {
           <h3 class="text-xl font-extrabold text-white">Add Question</h3>
           <p class="text-xs text-slate-400 mt-1">New questions appear in Practice immediately after saving — students always solve them in the order they were created.</p>
         </div>
-        <button type="button" onclick="refreshAdminStats()" class="bg-slate-700 hover:bg-slate-600 text-slate-200 text-xs font-semibold px-4 py-2 rounded-xl transition">Refresh Stats</button>
+        <button type="button" onclick="refreshAdminStats(true)" class="bg-slate-700 hover:bg-slate-600 text-slate-200 text-xs font-semibold px-4 py-2 rounded-xl transition">Refresh Stats</button>
       </div>
 
       <div id="admin-position-preview" class="am-badge am-badge-accent w-fit">Loading numbering…</div>
@@ -178,12 +178,37 @@ async function renderAdminDashboard() {
   loadAndRenderQuestionsList();
 }
 
-async function refreshAdminStats() {
+async function refreshAdminStats(forceRefresh = false) {
   const totalEl = document.getElementById('admin-total-users');
   const monthEl = document.getElementById('admin-month-users');
   const todayEl = document.getElementById('admin-today-users');
 
   if (!totalEl || !monthEl || !todayEl) return;
+
+  // ИСПРАВЛЕНО: раньше эта функция читала ВСЮ коллекцию users заново при
+  // каждом открытии/переключении на вкладку Admin — ни одного кэша не было.
+  // При активном тестировании (много переключений вкладок за день) это и
+  // давало резкий рост reads в Firestore, даже когда самих пользователей и
+  // вопросов немного. Теперь результат кэшируется на 3 минуты в localStorage;
+  // кнопка "Refresh Stats" (forceRefresh = true) всегда обходит кэш.
+  const CACHE_TTL_MS = 3 * 60 * 1000;
+
+  if (!forceRefresh) {
+    const cacheRaw = localStorage.getItem('admin_stats_cache');
+    if (cacheRaw) {
+      try {
+        const cached = JSON.parse(cacheRaw);
+        if (Date.now() - cached.ts < CACHE_TTL_MS) {
+          totalEl.innerText = cached.total;
+          monthEl.innerText = cached.month;
+          todayEl.innerText = cached.today;
+          return;
+        }
+      } catch (e) {
+        // битый кэш — просто идём за свежими данными ниже
+      }
+    }
+  }
 
   totalEl.innerText = 'Loading…';
   monthEl.innerText = 'Loading…';
@@ -242,6 +267,13 @@ async function refreshAdminStats() {
     totalEl.innerText = totalUsers;
     monthEl.innerText = newThisMonth;
     todayEl.innerText = activeToday;
+
+    localStorage.setItem('admin_stats_cache', JSON.stringify({
+      ts: Date.now(),
+      total: totalUsers,
+      month: newThisMonth,
+      today: activeToday
+    }));
 
   } catch (e) {
     console.error("Error loading admin stats:", e);
