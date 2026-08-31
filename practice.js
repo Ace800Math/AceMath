@@ -14,49 +14,14 @@ let desmosState = {
   });
 })();
 
-// Функция выгрузки истории из Firebase (с проверкой кэша)
-async function syncAttemptsFromFirebase() {
-  const userId = getCurrentUserId();
-  if (!userId || userId === 'guest_user' || typeof db === 'undefined') return;
-
-  const attemptsKey = getUserAttemptsKey();
-  const localData = localStorage.getItem(attemptsKey);
-
-  // ПРОВЕРКА КЭША: Если данные в кэше есть — Firebase не трогаем (0 reads)
-  if (localData && JSON.parse(localData).length > 0) {
-    return;
-  }
-
-  try {
-    const snapshot = await db.collection("users").doc(userId).collection("attempts").get();
-
-    if (!snapshot.empty) {
-      const attempts = [];
-      snapshot.forEach(doc => attempts.push(doc.data()));
-
-      // Восстанавливаем localStorage
-      localStorage.setItem(attemptsKey, JSON.stringify(attempts));
-
-      // Обновляем счётчик
-      solvedCount = attempts.filter(a => a.isCorrect).length;
-      const initialSolvedEl = document.getElementById('home-solved-count');
-      if (initialSolvedEl) initialSolvedEl.innerText = solvedCount;
-    }
-  } catch (err) {
-    console.error("Ошибка загрузки данных из Firebase:", err);
-  }
-}
-
-// Запускаем синхронизацию ПОСЛЕ того, как Firebase подтянет юзера
-if (typeof firebase !== 'undefined' && firebase.auth) {
-  firebase.auth().onAuthStateChanged((user) => {
-    if (user) {
-      syncAttemptsFromFirebase();
-    }
-  });
-} else {
-  syncAttemptsFromFirebase();
-}
+// ИСПРАВЛЕНО: раньше здесь была отдельная функция syncAttemptsFromFirebase()
+// с собственной подпиской на firebase.auth().onAuthStateChanged(...) — полный
+// дубль window.loadAttemptsFromFirestore() из firebase.js, которую и так уже
+// вызывает auth.js при каждом логине через loadAndRenderUserData(). Два
+// независимых слушателя означали гонку: оба почти одновременно проверяли
+// localStorage, оба иногда успевали не увидеть кэш друг друга и оба били по
+// Firestore — двойное чтение подколлекции attempts на ровном месте. Теперь
+// используется только один, уже существующий и кэширующий путь.
 
 function getCurrentUserId() {
   const fbUser = (typeof firebase !== 'undefined' && firebase.auth) ? firebase.auth().currentUser : null;
@@ -375,7 +340,7 @@ function renderActiveQuestion() {
         ${answerBlockHtml}
         <div id="feedback-msg" class="text-xs font-bold min-h-[1rem]"></div>
         <div class="flex items-center justify-between pt-2 border-t border-slate-100">
-          <button onclick="checkAnswer()" id="submit-ans-btn" class="bg-slate-200 text-slate-400 font-bold px-6 py-2.5 rounded-xl text-xs transition cursor-not-allowed shadow-none" disabled>
+          <button onclick="checkAnswer()" id="submit-ans-btn" class="bg-slate-200 text-slate-400 font-bold px-6 py-2.5 rounded-xl text-xs transition shadow-none" disabled>
             Check Answer
           </button>
         </div>
@@ -632,7 +597,7 @@ function handleInputChange(val) {
   } else {
     // Поле пустое: блокируем и возвращаем блёклый цвет
     submitBtn.disabled = true;
-    submitBtn.className = "bg-slate-200 text-slate-400 font-bold px-6 py-2.5 rounded-xl text-xs transition cursor-not-allowed shadow-none";
+    submitBtn.className = "bg-slate-200 text-slate-400 font-bold px-6 py-2.5 rounded-xl text-xs transition shadow-none";
   }
 }
 function checkAnswer() {

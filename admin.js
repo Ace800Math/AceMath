@@ -367,7 +367,9 @@ async function handleDeleteQuestion(firestoreId, displayNumber) {
       await window.refreshQuestionsFromCloud(true);
     }
 
-    await loadAndRenderQuestionsList(true);
+    // ИСПРАВЛЕНО: тот же дубль-рид, что и в handleSaveQuestion — кэш уже
+    // свежий после refreshQuestionsFromCloud(true) выше, форсировать снова не нужно.
+    await loadAndRenderQuestionsList();
     await refreshAdminCounts();
   } catch (err) {
     console.error('Error deleting question:', err);
@@ -486,8 +488,13 @@ async function handleSaveQuestion() {
     document.querySelector('input[name="admin-correct"][value="0"]').checked = true;
 
     // 4. Пересчет нумерации и обновление списка вопросов
+    // ИСПРАВЛЕНО: раньше здесь стоял loadAndRenderQuestionsList(true), который
+    // форсированно читал ВСЮ коллекцию questions ЕЩЁ РАЗ — хотя строкой выше
+    // refreshQuestionsFromCloud(true) уже прочитал её и обновил кэш. Итог: два
+    // полных чтения коллекции на каждое сохранение вопроса вместо одного.
+    // Теперь второй вызов идёт без force — берёт уже свежий кэш, 0 reads.
     await refreshAdminCounts();
-    await loadAndRenderQuestionsList(true);
+    await loadAndRenderQuestionsList();
   } catch (err) {
     console.error('Error saving question:', err);
     if (typeof window.showToast === 'function') {

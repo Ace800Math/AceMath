@@ -1,56 +1,9 @@
 @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap');
 
 /* ==========================================================================
-   1. ДИЗАЙН-ТОКЕНЫ И ПЕРЕМЕННЫЕ (DARK MODE BY DEFAULT)
+   1. ДИЗАЙН-ТОКЕНЫ И ПЕРЕМЕННЫЕ (LIGHT MODE ONLY — тёмная тема убрана)
    ========================================================================== */
 :root {
-  color-scheme: dark;
-
-  --bg-app: #030508;
-  --bg-surface: #0b101b;
-  --bg-surface-deep: #010204;
-  --bg-elevated-hover: #131d31;
-  --bg-elevated-hover-2: #1e293b;
-  --bg-overlay: rgba(0, 0, 0, 0.75);
-  --sidebar-bg: #030508;
-  --bg-pill: rgba(255, 255, 255, 0.05);
-
-  --border-default: #1e2c4d;
-  --border-subtle: #0b101b;
-  --border-strong: #2563eb;
-
-  --text-heading: #f8fafc;
-  --text-body: #cbd5e1;
-  --text-muted: #8ea0bd;
-  --text-faint: #f8fafc;
-  --text-disabled: #475569;
-
-  --accent: #34d399;
-  --accent-hover: #6ee7b7;
-  --accent-soft: #a7f3d0;
-  --accent-strong: #10b981;
-  --accent-bg-deep: #052e16;
-  --accent-text: #dcfce7;
-
-  --accent-2: #38bdf8;
-  --accent-2-soft: #7dd3fc;
-  --gradient-brand: linear-gradient(135deg, var(--accent) 0%, var(--accent-2) 100%);
-  --shadow-glow: 0 0 22px rgba(52, 211, 153, 0.18);
-  --shadow-soft: 0 6px 20px rgba(0, 0, 0, 0.25);
-
-  --success: #34d399;
-  --warning: #fbbf24;
-  --danger: #fb7185;
-
-  --radius-sm: 8px;
-  --radius-md: 10px;
-  --radius-lg: 14px;
-}
-
-/* ==========================================================================
-   2. СВЕТЛАЯ ТЕМА (LIGHT MODE)
-   ========================================================================== */
-body.light-theme {
   color-scheme: light;
 
   --bg-app: #f6f7fb;
@@ -58,6 +11,7 @@ body.light-theme {
   --bg-surface-deep: #eef1f6;
   --bg-elevated-hover: #f4f6fa;
   --bg-elevated-hover-2: #e8ecf3;
+  --bg-overlay: rgba(0, 0, 0, 0.75);
   --sidebar-bg: #ffffff;
   --bg-pill: #eef1f7;
 
@@ -71,8 +25,26 @@ body.light-theme {
   --text-faint: #0f172a;
   --text-disabled: #94a3b8;
 
+  --accent: #34d399;
+  --accent-hover: #6ee7b7;
+  --accent-soft: #a7f3d0;
+  --accent-strong: #10b981;
+  --accent-bg-deep: #052e16;
+  --accent-text: #dcfce7;
+
+  --accent-2: #38bdf8;
+  --accent-2-soft: #7dd3fc;
+  --gradient-brand: linear-gradient(135deg, var(--accent) 0%, var(--accent-2) 100%);
   --shadow-glow: 0 4px 16px rgba(15, 23, 42, 0.06);
   --shadow-soft: 0 4px 16px rgba(15, 23, 42, 0.06);
+
+  --success: #34d399;
+  --warning: #fbbf24;
+  --danger: #fb7185;
+
+  --radius-sm: 8px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
 }
 
 /* ==========================================================================
@@ -126,9 +98,7 @@ aside, .sidebar, nav.sidebar, [class*="sidebar"] {
   background-color: var(--sidebar-bg) !important;
 }
 
-body.light-theme aside,
-body.light-theme .sidebar,
-body.light-theme nav.sidebar {
+aside, .sidebar, nav.sidebar {
   border-right: 1px solid var(--border-default);
 }
 
@@ -262,6 +232,7 @@ main .flex-1 {
 .text-indigo-500:not(#desmos-calculator-container *),
 .text-indigo-600:not(#desmos-calculator-container *) { color: var(--accent) !important; }
 .bg-indigo-600:not(#desmos-calculator-container *)   { background-color: var(--accent) !important; color: #06281c !important; }
+.border-indigo-500:not(#desmos-calculator-container *) { border-color: var(--accent) !important; }
 
 /* ==========================================================================
    7. КАСТОМНЫЕ AM-* КОМПОНЕНТЫ
@@ -309,43 +280,6 @@ main .flex-1 {
 .bg-slate-800\/80.rounded-2xl {
   box-shadow: var(--shadow-soft);
 }
-
-/* ==========================================================================
-   8. ПЕРЕКЛЮЧАТЕЛЬ ТЕМЫ
-   ========================================================================== */
-.theme-toggle-btn {
-  position: relative;
-  width: 34px;
-  height: 34px;
-  border-radius: var(--radius-sm);
-  background-color: var(--bg-pill);
-  border: 1px solid var(--border-default);
-  color: var(--text-body);
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.2s ease;
-  outline: none;
-}
-
-.theme-toggle-btn:hover {
-  border-color: var(--accent);
-  box-shadow: var(--shadow-glow);
-}
-
-.theme-toggle-btn svg {
-  width: 16px;
-  height: 16px;
-  position: absolute;
-  transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease;
-}
-
-body:not(.light-theme) .sun-icon { transform: rotate(90deg) scale(0); opacity: 0; }
-body:not(.light-theme) .moon-icon { transform: rotate(0deg) scale(1); opacity: 1; color: var(--accent); }
-
-body.light-theme .sun-icon { transform: rotate(0deg) scale(1); opacity: 1; color: #f2a93b; }
-body.light-theme .moon-icon { transform: rotate(-90deg) scale(0); opacity: 0; }
 
 /* ==========================================================================
    9. ТАБЛИЦЫ
@@ -433,30 +367,6 @@ table td span[class*="rounded"] {
 #explanation-box button:hover {
   background-color: var(--bg-elevated-hover) !important;
   border-color: var(--accent) !important;
-}
-
-/* ==========================================================================
-   11. ГЛОБАЛЬНЫЕ ФИКСЫ КНОПОК И ТАЙМЕРА (ИСКЛЮЧАЯ DESMOS)
-   ========================================================================== */
-body:not(.light-theme) [id*="timer"],
-body:not(.light-theme) button:not([class*="dcg-"]):not(#desmos-calculator-container *),
-body:not(.light-theme) .bg-white:not(#desmos-calculator-container *),
-body:not(.light-theme) .bg-slate-100:not(#desmos-calculator-container *) {
-  background-color: var(--bg-surface-deep) !important;
-  color: var(--text-heading) !important;
-  border: 1px solid var(--border-default) !important;
-}
-
-body:not(.light-theme) [id*="timer"] *,
-body:not(.light-theme) button:not([class*="dcg-"]):not(#desmos-calculator-container *) * {
-  color: var(--text-heading) !important;
-}
-
-body:not(.light-theme) button.bg-emerald-500:not(#desmos-calculator-container *),
-body:not(.light-theme) button[class*="emerald"]:not(#desmos-calculator-container *) {
-  background-color: var(--accent) !important;
-  color: #06281c !important;
-  border: none !important;
 }
 
 /* ==========================================================================
@@ -549,4 +459,8 @@ body:not(.light-theme) button[class*="emerald"]:not(#desmos-calculator-container
   line-height: 1;
   margin-right: -0.15em;
   margin-top: -0.1em;
+}
+button:disabled,
+button[disabled] {
+  cursor: default !important;
 }
