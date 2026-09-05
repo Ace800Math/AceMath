@@ -91,8 +91,19 @@ window.saveAttemptToFirestore = async function(attemptData) {
   const userKey = `user_attempts_${userId}`;
 
   try {
-    // Пишем в Firestore
+    // Пишем сам факт попытки, как раньше
     await db.collection("users").doc(userId).collection("attempts").add(attemptData);
+
+    // ДОБАВЛЕНО: параллельно копим суммарное время и число попыток прямо
+    // на документе юзера (users/{uid}). Смысл: чтобы посмотреть "сколько
+    // часов юзер провёл на сайте" в админке, не нужно читать все его
+    // попытки (это может быть сотни reads на одного юзера) — читается
+    // ОДИН документ, а число там уже готовое. Стоит это лишний write при
+    // каждой попытке (запись и так уже идёт), а не лишние reads.
+    db.collection("users").doc(userId).set({
+      totalTimeSpentSeconds: firebase.firestore.FieldValue.increment(attemptData.timeSpent || 30),
+      totalQuestionsAnswered: firebase.firestore.FieldValue.increment(1)
+    }, { merge: true }).catch(err => console.error("Error updating time aggregate:", err));
 
     // Обновляем локальный кэш конкретного юзера
     const localAttempts = JSON.parse(localStorage.getItem(userKey) || '[]');
@@ -220,6 +231,29 @@ window.deleteQuestionFromFirestore = async function(firestoreId) {
   // Сбрасываем локальный кэш, чтобы удалённый вопрос сразу пропал у всех
   // при следующей подгрузке банка вопросов.
   localStorage.removeItem('cached_questions');
+};
+
+// Поиск юзера по email для админки: возвращает документ (включая
+// totalTimeSpentSeconds/totalQuestionsAnswered) ОДНИМ чтением — без
+// перебора всей коллекции attempts. where(...).limit(1).get() стоит
+// ровно 1 read при точном совпадении email.
+window.lookupUserByEmail = async function(email) {
+  const normalized = (email || '').trim();
+  if (!normalized) return null;
+
+  try {
+    const snapshot = await db.collection("users")
+      .where("email", "==", normalized)
+      .limit(1)
+      .get();
+
+    if (snapshot.empty) return null;
+    const doc = snapshot.docs[0];
+    return { uid: doc.id, ...doc.data() };
+  } catch (err) {
+    console.error("Error looking up user:", err);
+    return null;
+  }
 };
 
 // Экспорт в глобальную область

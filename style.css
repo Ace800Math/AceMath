@@ -460,7 +460,3 @@ table td span[class*="rounded"] {
   margin-right: -0.15em;
   margin-top: -0.1em;
 }
-button:disabled,
-button[disabled] {
-  cursor: default !important;
-}

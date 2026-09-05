@@ -53,6 +53,17 @@ async function renderAdminDashboard() {
         <p class="text-xs text-slate-400 mt-1">Manage users statistics and create new questions.</p>
       </div>
 
+      <!-- ПОИСК ЮЗЕРА ПО EMAIL: суммарное время на сайте, вопросов решено и т.д. -->
+      <div class="bg-slate-800 p-5 rounded-xl border border-slate-700 space-y-3">
+        <h3 class="text-sm font-bold text-white uppercase tracking-wider">Look Up User</h3>
+        <p class="text-xs text-slate-400">1 read per lookup, regardless of how many questions the student has answered.</p>
+        <div class="flex gap-2">
+          <input type="email" id="admin-lookup-email" placeholder="student@email.com" class="flex-1 bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-sm focus:outline-none focus:border-indigo-500">
+          <button type="button" onclick="handleUserLookup()" class="bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold px-5 py-2 rounded-xl transition">Search</button>
+        </div>
+        <div id="admin-lookup-result"></div>
+      </div>
+
       <!-- СТАТИСТИКА ПОЛЬЗОВАТЕЛЕЙ (ТОЛЬКО ДЛЯ АДМИНА) -->
       <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div class="bg-slate-800 p-5 rounded-xl border border-slate-700 text-center shadow-md">
@@ -177,6 +188,60 @@ async function renderAdminDashboard() {
   refreshAdminStats();
   loadAndRenderQuestionsList();
 }
+
+async function handleUserLookup() {
+  const emailInput = document.getElementById('admin-lookup-email');
+  const resultEl = document.getElementById('admin-lookup-result');
+  if (!emailInput || !resultEl) return;
+
+  const email = emailInput.value.trim();
+  if (!email) {
+    resultEl.innerHTML = `<p class="text-xs text-rose-400 mt-2">Enter an email first.</p>`;
+    return;
+  }
+
+  resultEl.innerHTML = `<p class="text-xs text-slate-400 mt-2">Searching…</p>`;
+
+  if (typeof window.lookupUserByEmail !== 'function') {
+    resultEl.innerHTML = `<p class="text-xs text-rose-400 mt-2">Lookup function not available — check firebase.js.</p>`;
+    return;
+  }
+
+  const user = await window.lookupUserByEmail(email);
+
+  if (!user) {
+    resultEl.innerHTML = `<p class="text-xs text-slate-400 mt-2">No user found with that email.</p>`;
+    return;
+  }
+
+  // Форматируем секунды в часы+минуты. Учти: если пользователь решал
+  // вопросы ДО того, как добавили эту агрегацию, эти старые попытки в
+  // сумму не попадут — считается только время, накопленное с этого момента.
+  const totalSeconds = user.totalTimeSpentSeconds || 0;
+  const hours = Math.floor(totalSeconds / 3600);
+  const mins = Math.round((totalSeconds % 3600) / 60);
+  const timeLabel = totalSeconds > 0 ? `${hours}h ${mins}m` : '0h 0m (no tracked activity yet)';
+
+  const firstName = user.first_name || user.firstName || '—';
+  const lastName = user.last_name || user.lastName || '';
+  const targetScore = user.target_score || user.targetScore || '—';
+  const examDate = user.exam_date || user.examDate || '—';
+  const questionsAnswered = user.totalQuestionsAnswered || 0;
+
+  resultEl.innerHTML = `
+    <div class="mt-3 bg-slate-900 border border-slate-700 rounded-lg p-4 space-y-1.5 text-sm">
+      <div class="font-bold text-white">${firstName} ${lastName}</div>
+      <div class="text-slate-400 text-xs">${user.email || email}</div>
+      <div class="grid grid-cols-2 gap-2 pt-2 text-xs">
+        <div class="text-slate-400">Total time on site: <span class="text-indigo-400 font-bold">${timeLabel}</span></div>
+        <div class="text-slate-400">Questions answered: <span class="text-white font-bold">${questionsAnswered}</span></div>
+        <div class="text-slate-400">Target score: <span class="text-white font-bold">${targetScore}</span></div>
+        <div class="text-slate-400">Exam date: <span class="text-white font-bold">${examDate}</span></div>
+      </div>
+    </div>
+  `;
+}
+window.handleUserLookup = handleUserLookup;
 
 async function refreshAdminStats(forceRefresh = false) {
   const totalEl = document.getElementById('admin-total-users');
