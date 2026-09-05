@@ -183,10 +183,18 @@ window.saveQuestionToFirestore = async function(questionData) {
 };
 
 // 3. ОПТИМИЗАЦИЯ: Загрузка вопросов из базы только при отсутствии кэша или флаге forceRefresh
+// Кэш банка вопросов "протухает" через CACHE_TTL_MS — иначе у ученика,
+// который зашёл давно, в localStorage навсегда застревает старый список
+// (баг: новые вопросы, добавленные админом, ему просто никогда не
+// подгружаются, пока он сам не почистит кэш браузера).
+const QUESTIONS_CACHE_TTL_MS = 6 * 60 * 60 * 1000; // 6 часов
+
 window.loadQuestionsFromFirestore = async function(forceRefresh = false) {
   const cachedQuestions = localStorage.getItem('cached_questions');
+  const cachedAt = Number(localStorage.getItem('cached_questions_at') || 0);
+  const isFresh = cachedAt && (Date.now() - cachedAt < QUESTIONS_CACHE_TTL_MS);
 
-  if (!forceRefresh && cachedQuestions) {
+  if (!forceRefresh && cachedQuestions && isFresh) {
     try {
       return JSON.parse(cachedQuestions);
     } catch (e) {
@@ -200,6 +208,7 @@ window.loadQuestionsFromFirestore = async function(forceRefresh = false) {
 
     if (questions.length > 0) {
       localStorage.setItem('cached_questions', JSON.stringify(questions));
+      localStorage.setItem('cached_questions_at', String(Date.now()));
     }
     return questions;
   } catch (err) {
